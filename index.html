@@ -15,6 +15,7 @@
         <li><a href="#about">About</a></li>
         <li><a href="#skills">Skills</a></li>
         <li><a href="#projects">Projects</a></li>
+        <li><a href="#all-projects">Image</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
     </div>
@@ -57,6 +58,14 @@
     <div class="container">
       <h2 class="section-title">Projects</h2>
       <div class="projects-grid" id="projects-grid">
+      </div>
+    </div>
+  </section>
+
+  <section id="all-projects" class="all-projects">
+    <div class="container">
+      <h2 class="section-title">Image</h2>
+      <div class="all-projects-list" id="all-projects-list">
       </div>
     </div>
   </section>
@@ -136,6 +145,26 @@
   // --- Init ---
   renderContent();
 
+  // --- All Projects nav toggle (delegation for dynamic nav) ---
+  var allSection = document.getElementById('all-projects');
+  document.querySelector('.nav-links').addEventListener('click', function(e) {
+    var link = e.target.closest('a');
+    if (!link) return;
+    if (link.getAttribute('href') === '#all-projects') {
+      allSection.classList.add('active');
+    } else {
+      allSection.classList.remove('active');
+    }
+  });
+
+  // --- Hide All Projects when scrolled out of view ---
+  var allObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (!entry.isIntersecting) allSection.classList.remove('active');
+    });
+  }, { threshold: 0 });
+  allObserver.observe(allSection);
+
   (function() {
     var found = [];
     var lightbox = document.getElementById('lightbox');
@@ -166,18 +195,23 @@
     }
 
     function build() {
+      // Remove hero-bg / profile from found (lightbox 제외)
+      var heroSrc = null;
+      found = found.filter(function(item) {
+        if (item.key === 'hero-bg') { if (item.src) heroSrc = item.src; return false; }
+        if (item.key === 'profile') return false;
+        return true;
+      });
+      if (heroSrc && isVideoUrl(heroSrc)) {
+        var heroVideo = document.querySelector('.hero-bg-video');
+        if (heroVideo) heroVideo.src = heroSrc;
+      }
+
       var grid = document.getElementById('projects-grid');
       grid.innerHTML = '';
       var cardCount = 0;
       found.forEach(function(item, i) {
-        if (item.key === 'hero-bg') {
-          if (isVideoUrl(item.src)) {
-            var heroVideo = document.querySelector('.hero-bg-video');
-            if (heroVideo) heroVideo.src = item.src;
-          }
-          return;
-        }
-        if (item.key === 'profile') return;
+        if (item.galleryOnly) return;
         cardCount++;
         var card = document.createElement('div');
         card.className = 'project-card';
@@ -233,6 +267,75 @@
         updateLightbox(currentIdx);
       }
 
+      // --- Build Image gallery (grouped) ---
+      function createThumb(item, idx) {
+        var thumb = isVideoUrl(item.src)
+          ? '<video src="' + item.src + '" muted autoplay playsinline loop></video>'
+          : '<img src="' + item.src + '" alt="' + item.title + '">';
+        var div = document.createElement('div');
+        div.className = 'all-project-item';
+        div.dataset.img = idx;
+        div.innerHTML = thumb;
+        div.addEventListener('click', function() {
+          var i = parseInt(this.dataset.img);
+          if (!isNaN(i)) openLightbox(i);
+        });
+        return div;
+      }
+
+      var allList = document.getElementById('all-projects-list');
+      if (!allList) return;
+      allList.innerHTML = '';
+
+      var groups = {};
+      found.forEach(function(item, i) {
+        var parts = item.key.split('-');
+        var baseKey = parts[0];
+        if (!groups[baseKey]) groups[baseKey] = {main: null, subs: []};
+        if (parts.length === 1) {
+          groups[baseKey].main = {item: item, idx: i};
+        } else {
+          groups[baseKey].subs.push({item: item, idx: i});
+        }
+      });
+
+      Object.keys(groups).forEach(function(baseKey) {
+        var group = groups[baseKey];
+        if (group.subs.length === 0) {
+          var div = createThumb(group.main.item, group.main.idx);
+          allList.appendChild(div);
+          return;
+        }
+
+        var mainThumb = isVideoUrl(group.main.item.src)
+          ? '<video src="' + group.main.item.src + '" muted autoplay playsinline loop></video>'
+          : '<img src="' + group.main.item.src + '" alt="' + group.main.item.title + '">';
+        var mainDiv = document.createElement('div');
+        mainDiv.className = 'all-project-item all-project-group-header';
+        mainDiv.innerHTML = mainThumb;
+
+        var badge = document.createElement('span');
+        badge.className = 'all-project-badge';
+        badge.textContent = '+' + group.subs.length;
+        mainDiv.appendChild(badge);
+
+        var subsWrap = document.createElement('div');
+        subsWrap.className = 'all-project-subs';
+        group.subs.forEach(function(sub) {
+          subsWrap.appendChild(createThumb(sub.item, sub.idx));
+        });
+
+        var expanded = false;
+        mainDiv.addEventListener('click', function(e) {
+          expanded = !expanded;
+          subsWrap.classList.toggle('open', expanded);
+          badge.textContent = expanded ? '-' + group.subs.length : '+' + group.subs.length;
+        });
+
+        allList.appendChild(mainDiv);
+        allList.appendChild(subsWrap);
+      });
+
       document.querySelectorAll('.project-card').forEach(function(card) {
         card.addEventListener('click', function(e) {
           if (e.target.closest('.project-link-wrap')) return;
@@ -268,19 +371,85 @@
       });
     }
 
-    // --- Start: always use imageDataList ---
-    if (typeof imageDataList === 'undefined' || !imageDataList.length) return;
-    found = new Array(imageDataList.length);
+    // --- Phase 1: probe main entries (imageDataList) ---
+    var mainEntries = [];
+    if (typeof imageDataList !== 'undefined') {
+      imageDataList.forEach(function(e) {
+        mainEntries.push({key: e[0], title: e[1], desc: e[2] || '', url: e[3] || '', galleryOnly: false});
+      });
+    }
+    if (!mainEntries.length) return;
+    found = new Array(mainEntries.length);
     var loaded = 0;
-    imageDataList.forEach(function(entry, i) {
-      tryExtensions(entry[0], function(src) {
-        found[i] = {src: src, title: entry[1], desc: entry[2] || '', url: entry[3] || '', key: entry[0]};
-        if (++loaded === imageDataList.length) build();
+    mainEntries.forEach(function(entry, i) {
+      tryExtensions(entry.key, function(src) {
+        found[i] = {src: src, title: entry.title, desc: entry.desc, url: entry.url, key: entry.key, galleryOnly: entry.galleryOnly};
+        if (++loaded === mainEntries.length) probeAutoExtras();
       }, function() {
-        if (++loaded === imageDataList.length) build();
+        if (++loaded === mainEntries.length) probeAutoExtras();
       });
     });
+
+    // --- Phase 2: auto-discover key-1, key-2, key-3... ---
+    function probeAutoExtras() {
+      var baseKeys = [];
+      mainEntries.forEach(function(e) {
+        if (e.key !== 'hero-bg' && e.key !== 'profile') baseKeys.push(e.key);
+      });
+
+      var ki = 0;
+      function nextKey() {
+        if (ki >= baseKeys.length) {
+          probeManualExtras();
+          return;
+        }
+        var base = baseKeys[ki];
+        var suf = 1;
+        function trySuf() {
+          var ek = base + '-' + suf;
+          tryExtensions(ek, function(src) {
+            found.push({src: src, title: base + ' #' + suf, desc: '', url: '', key: ek, galleryOnly: true});
+            suf++;
+            trySuf();
+          }, function() {
+            ki++;
+            nextKey();
+          });
+        }
+        trySuf();
+      }
+      nextKey();
+    }
+
+    // --- Phase 3: probe manually listed extras (imageGalleryExtra) ---
+    function probeManualExtras() {
+      if (typeof imageGalleryExtra === 'undefined' || !imageGalleryExtra.length) {
+        build();
+        return;
+      }
+      var keyMap = {};
+      found.forEach(function(item, i) { keyMap[item.key] = i; });
+      var pending = 0;
+      imageGalleryExtra.forEach(function(e) {
+        var idx = keyMap[e[0]];
+        if (idx !== undefined) {
+          found[idx].title = e[1] || found[idx].title;
+          found[idx].desc = e[2] || found[idx].desc;
+          found[idx].url = e[3] || found[idx].url;
+          return;
+        }
+        pending++;
+        tryExtensions(e[0], function(src) {
+          found.push({src: src, title: e[1], desc: e[2] || '', url: e[3] || '', key: e[0], galleryOnly: true});
+          if (--pending === 0) build();
+        }, function() {
+          if (--pending === 0) build();
+        });
+      });
+      if (pending === 0) build();
+    }
   })();
+
 </script>
 </body>
 </html>

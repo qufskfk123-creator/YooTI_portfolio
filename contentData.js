@@ -8,6 +8,7 @@ var contentData = {
       { href: "#about", label: "About" },
       { href: "#skills", label: "Skills" },
       { href: "#projects", label: "Projects" },
+      { href: "#all-projects", label: "Image" },
       { href: "#contact", label: "Contact" }
     ]
   },
@@ -25,7 +26,7 @@ var contentData = {
   },
   skills: {
     sectionTitle: "Skills",
-    items: ["3dsMax", "Blender", "AutoCAD", "InfraWroks", "Qgis","Renderer", "Unreal Engine", "Unity", "After Effects", "PhotoShop", "PM", " "]
+    items: ["3dsMax", "Blender", "AutoCAD", "InfraWroks", "Qgis","Renderer", "Unreal Engine", "Unity", "After Effects", "PhotoShop", "PM", "WebGL"]
   },
   projects: {
     sectionTitle: "Projects"
