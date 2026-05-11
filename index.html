@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="#" class="logo">Portfolio</a>
+      <ul class="nav-links">
+        <li><a href="#hero">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#skills">Skills</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <section id="hero" class="hero">
+    <video class="hero-bg-video" muted autoplay loop playsinline></video>
+    <div class="hero-overlay"></div>
+    <div class="container hero-content">
+      <h1><span class="highlight" data-content="hero.name">TAEIL YOO</span></h1>
+      <p data-content="hero.subtitle">3D Graphics & VFX Artist</p>
+      <a href="#projects" class="btn" data-content="hero.btnText" data-href="hero.btnHref">View My Work</a>
+    </div>
+  </section>
+
+  <section id="about" class="about">
+    <div class="container">
+      <h2 class="section-title" data-content="about.sectionTitle">About Me</h2>
+      <div class="about-content">
+        <div class="about-img">
+          <img src="image/profile.jpg" alt="Profile photo">
+        </div>
+        <div class="about-text">
+          <p data-content="about.desc1"></p>
+          <p data-content="about.desc2"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="skills" class="skills">
+    <div class="container">
+      <h2 class="section-title" data-content="skills.sectionTitle">Skills</h2>
+      <div class="skills-grid" id="skills-grid">
+      </div>
+    </div>
+  </section>
+
+  <section id="projects" class="projects">
+    <div class="container">
+      <h2 class="section-title">Projects</h2>
+      <div class="projects-grid" id="projects-grid">
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="contact">
+    <div class="container">
+      <h2 class="section-title" data-content="contact.sectionTitle">Contact</h2>
+      <div class="contact-info" id="contact-info">
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <p data-content="footer.copyright">&copy; 2026 TAEIL YOO. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <div id="lightbox" class="lightbox">
+    <span class="lightbox-close">&times;</span>
+    <button class="lightbox-nav lightbox-prev">&#10094;</button>
+    <button class="lightbox-nav lightbox-next">&#10095;</button>
+    <img class="lightbox-media lightbox-img" src="" alt="">
+    <video class="lightbox-media lightbox-video" src="" controls autoplay muted playsinline></video>
+    <div class="lightbox-title"></div>
+    <div class="lightbox-counter"></div>
+  </div>
+
+<script src="contentData.js"></script>
+<script src="imageData.js"></script>
+<script>
+  // --- Render content from contentData.js ---
+  function renderContent() {
+    if (typeof contentData === 'undefined') return;
+
+    document.title = contentData.pageTitle || 'Portfolio';
+
+    document.querySelectorAll('[data-content]').forEach(function(el) {
+      var path = el.dataset.content.split('.');
+      var val = contentData;
+      for (var p = 0; p < path.length; p++) { if (val) val = val[path[p]]; }
+      if (typeof val === 'string') el.innerHTML = val;
+
+      if (el.dataset.href) {
+        var hrefPath = el.dataset.href.split('.');
+        var hrefVal = contentData;
+        for (var p = 0; p < hrefPath.length; p++) { if (hrefVal) hrefVal = hrefVal[hrefPath[p]]; }
+        if (typeof hrefVal === 'string') el.href = hrefVal;
+      }
+    });
+
+    var navLinks = document.querySelector('.nav-links');
+    if (navLinks && contentData.nav && contentData.nav.links) {
+      navLinks.innerHTML = contentData.nav.links.map(function(l) {
+        return '<li><a href="' + l.href + '">' + l.label + '</a></li>';
+      }).join('');
+    }
+
+    var logo = document.querySelector('.logo');
+    if (logo && contentData.nav) logo.textContent = contentData.nav.logo || 'Portfolio';
+
+    var skillsGrid = document.getElementById('skills-grid');
+    if (skillsGrid && contentData.skills && contentData.skills.items) {
+      skillsGrid.innerHTML = contentData.skills.items.map(function(s) {
+        return '<div class="skill-card">' + s + '</div>';
+      }).join('');
+    }
+
+    var contactInfo = document.getElementById('contact-info');
+    if (contactInfo && contentData.contact && contentData.contact.items) {
+      contactInfo.innerHTML = contentData.contact.items.map(function(item) {
+        return '<div class="contact-item"><span class="contact-icon">' + item.icon + '</span><span>' + item.text + '</span></div>';
+      }).join('');
+    }
+  }
+
+  // --- Init ---
+  renderContent();
+
+  (function() {
+    var found = [];
+    var lightbox = document.getElementById('lightbox');
+    var lightboxImg = lightbox.querySelector('.lightbox-img');
+    var lightboxVideo = lightbox.querySelector('.lightbox-video');
+    var lightboxTitle = lightbox.querySelector('.lightbox-title');
+    var lightboxCounter = lightbox.querySelector('.lightbox-counter');
+
+    function tryFile(n, ext, onFound, onFail) {
+      fetch('image/' + n + '.' + ext, { method: 'HEAD' })
+        .then(function(r) { if (r.ok) onFound(); else onFail(); })
+        .catch(onFail);
+    }
+
+    function tryExtensions(n, onFound, onFail) {
+      var exts = ['PNG', 'png', 'JPG', 'jpg', 'JPEG', 'jpeg', 'webp', 'gif', 'avif', 'svg', 'bmp', 'mp4', 'webm', 'mov', 'avi', 'mkv'];
+      function next(i) {
+        if (i >= exts.length) { onFail(); return; }
+        tryFile(n, exts[i], function() { onFound('image/' + n + '.' + exts[i].toLowerCase()); }, function() { next(i + 1); });
+      }
+      next(0);
+    }
+
+    var videoExts = ['mp4', 'webm', 'mov', 'avi', 'mkv'];
+    function isVideoUrl(url) {
+      var ext = url.split('.').pop().toLowerCase();
+      return videoExts.indexOf(ext) !== -1;
+    }
+
+    function build() {
+      var grid = document.getElementById('projects-grid');
+      grid.innerHTML = '';
+      var cardCount = 0;
+      found.forEach(function(item, i) {
+        if (item.key === 'hero-bg') {
+          if (isVideoUrl(item.src)) {
+            var heroVideo = document.querySelector('.hero-bg-video');
+            if (heroVideo) heroVideo.src = item.src;
+          }
+          return;
+        }
+        if (item.key === 'profile') return;
+        cardCount++;
+        var card = document.createElement('div');
+        card.className = 'project-card';
+        card.dataset.key = 'proj' + cardCount;
+        card.dataset.img = i;
+        var thumb = isVideoUrl(item.src)
+          ? '<video src="' + item.src + '" muted autoplay playsinline loop></video>'
+          : '<img src="' + item.src + '" alt="' + item.title + '">';
+        var urlVal = item.url || '';
+        card.innerHTML =
+          '<div class="project-img">' + thumb + '</div>' +
+          '<h3>' + item.title + '</h3>' +
+          '<p>' + (item.desc || '') + '</p>' +
+          (urlVal ? '<div class="project-link-wrap"><a href="' + urlVal + '" class="project-link" target="_blank" rel="noopener noreferrer">&#128279; Link</a></div>' : '');
+        grid.appendChild(card);
+      });
+
+      var currentIdx = 0;
+
+      function getTitle(idx) {
+        var card = document.querySelector('.project-card[data-img="' + idx + '"]');
+        if (card) {
+          var h3 = card.querySelector('h3');
+          if (h3 && h3.textContent) return h3.textContent;
+        }
+        return found[idx] ? found[idx].title : '';
+      }
+
+      function updateLightbox(idx) {
+        var src = found[idx].src;
+        var isVid = isVideoUrl(src);
+        lightboxImg.style.display = isVid ? 'none' : 'block';
+        lightboxVideo.style.display = isVid ? 'block' : 'none';
+        if (isVid) { lightboxVideo.src = src; lightboxVideo.load(); lightboxVideo.play(); }
+        else { lightboxImg.src = src; }
+        lightboxCounter.textContent = (currentIdx + 1) + ' / ' + found.length;
+        lightboxTitle.textContent = getTitle(idx);
+      }
+
+      function openLightbox(idx) {
+        currentIdx = idx;
+        updateLightbox(idx);
+        lightbox.classList.add('active');
+      }
+
+      function closeLightbox() {
+        lightbox.classList.remove('active');
+        lightboxVideo.pause();
+      }
+
+      function moveImage(step) {
+        currentIdx = (currentIdx + step + found.length) % found.length;
+        updateLightbox(currentIdx);
+      }
+
+      document.querySelectorAll('.project-card').forEach(function(card) {
+        card.addEventListener('click', function(e) {
+          if (e.target.closest('.project-link-wrap')) return;
+          var idx = parseInt(this.dataset.img);
+          if (!isNaN(idx)) openLightbox(idx);
+        });
+      });
+
+      var aboutImg = document.querySelector('.about-img img');
+      if (aboutImg) {
+        aboutImg.addEventListener('click', function() {
+          var clickedFile = this.getAttribute('src').split('/').pop().toLowerCase();
+          for (var i = 0; i < found.length; i++) {
+            if (found[i].src.split('/').pop().toLowerCase() === clickedFile) { openLightbox(i); return; }
+          }
+          openLightbox(0);
+        });
+      }
+
+      lightbox.addEventListener('click', function(e) {
+        if (e.target === lightbox) closeLightbox();
+      });
+
+      lightbox.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
+      lightbox.querySelector('.lightbox-prev').addEventListener('click', function() { moveImage(-1); });
+      lightbox.querySelector('.lightbox-next').addEventListener('click', function() { moveImage(1); });
+
+      document.addEventListener('keydown', function(e) {
+        if (!lightbox.classList.contains('active')) return;
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowLeft') moveImage(-1);
+        if (e.key === 'ArrowRight') moveImage(1);
+      });
+    }
+
+    // --- Start: always use imageDataList ---
+    if (typeof imageDataList === 'undefined' || !imageDataList.length) return;
+    found = new Array(imageDataList.length);
+    var loaded = 0;
+    imageDataList.forEach(function(entry, i) {
+      tryExtensions(entry[0], function(src) {
+        found[i] = {src: src, title: entry[1], desc: entry[2] || '', url: entry[3] || '', key: entry[0]};
+        if (++loaded === imageDataList.length) build();
+      }, function() {
+        if (++loaded === imageDataList.length) build();
+      });
+    });
+  })();
+</script>
+</body>
+</html>
