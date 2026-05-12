@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portfolio</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="preload" href="image/hero-bg.webm" as="video" type="video/webm">
+  <link rel="preload" href="image/profile.webp" as="image" type="image/webp">
 </head>
 <body>
   <nav class="navbar">
@@ -36,7 +38,10 @@
       <h2 class="section-title" data-content="about.sectionTitle">About Me</h2>
       <div class="about-content">
         <div class="about-img">
-          <img src="image/profile.jpg" alt="Profile photo">
+          <picture>
+            <source srcset="image/profile.webp" type="image/webp">
+            <img src="image/profile.jpg" alt="Profile photo" loading="lazy">
+          </picture>
         </div>
         <div class="about-text">
           <p data-content="about.desc1"></p>
@@ -97,18 +102,14 @@
 <script src="contentData.js"></script>
 <script src="imageData.js"></script>
 <script>
-  // --- Render content from contentData.js ---
   function renderContent() {
     if (typeof contentData === 'undefined') return;
-
     document.title = contentData.pageTitle || 'Portfolio';
-
     document.querySelectorAll('[data-content]').forEach(function(el) {
       var path = el.dataset.content.split('.');
       var val = contentData;
       for (var p = 0; p < path.length; p++) { if (val) val = val[path[p]]; }
       if (typeof val === 'string') el.innerHTML = val;
-
       if (el.dataset.href) {
         var hrefPath = el.dataset.href.split('.');
         var hrefVal = contentData;
@@ -116,24 +117,20 @@
         if (typeof hrefVal === 'string') el.href = hrefVal;
       }
     });
-
     var navLinks = document.querySelector('.nav-links');
     if (navLinks && contentData.nav && contentData.nav.links) {
       navLinks.innerHTML = contentData.nav.links.map(function(l) {
         return '<li><a href="' + l.href + '">' + l.label + '</a></li>';
       }).join('');
     }
-
     var logo = document.querySelector('.logo');
     if (logo && contentData.nav) logo.textContent = contentData.nav.logo || 'Portfolio';
-
     var skillsGrid = document.getElementById('skills-grid');
     if (skillsGrid && contentData.skills && contentData.skills.items) {
       skillsGrid.innerHTML = contentData.skills.items.map(function(s) {
         return '<div class="skill-card">' + s + '</div>';
       }).join('');
     }
-
     var contactInfo = document.getElementById('contact-info');
     if (contactInfo && contentData.contact && contentData.contact.items) {
       contactInfo.innerHTML = contentData.contact.items.map(function(item) {
@@ -142,22 +139,15 @@
     }
   }
 
-  // --- Init ---
   renderContent();
 
-  // --- All Projects nav toggle (delegation for dynamic nav) ---
   var allSection = document.getElementById('all-projects');
   document.querySelector('.nav-links').addEventListener('click', function(e) {
     var link = e.target.closest('a');
     if (!link) return;
-    if (link.getAttribute('href') === '#all-projects') {
-      allSection.classList.add('active');
-    } else {
-      allSection.classList.remove('active');
-    }
+    allSection.classList.toggle('active', link.getAttribute('href') === '#all-projects');
   });
 
-  // --- Hide All Projects when scrolled out of view ---
   var allObserver = new IntersectionObserver(function(entries) {
     entries.forEach(function(entry) {
       if (!entry.isIntersecting) allSection.classList.remove('active');
@@ -166,154 +156,153 @@
   allObserver.observe(allSection);
 
   (function() {
-    var found = [];
-    var lightbox = document.getElementById('lightbox');
-    var lightboxImg = lightbox.querySelector('.lightbox-img');
-    var lightboxVideo = lightbox.querySelector('.lightbox-video');
-    var lightboxTitle = lightbox.querySelector('.lightbox-title');
-    var lightboxCounter = lightbox.querySelector('.lightbox-counter');
-
-    function tryFile(n, ext, onFound, onFail) {
-      fetch('image/' + n + '.' + ext, { method: 'HEAD' })
-        .then(function(r) { if (r.ok) onFound(); else onFail(); })
-        .catch(onFail);
-    }
-
-    function tryExtensions(n, onFound, onFail) {
-      var exts = ['PNG', 'png', 'JPG', 'jpg', 'JPEG', 'jpeg', 'webp', 'gif', 'avif', 'svg', 'bmp', 'mp4', 'webm', 'mov', 'avi', 'mkv'];
-      function next(i) {
-        if (i >= exts.length) { onFail(); return; }
-        tryFile(n, exts[i], function() { onFound('image/' + n + '.' + exts[i].toLowerCase()); }, function() { next(i + 1); });
-      }
-      next(0);
-    }
-
     var videoExts = ['mp4', 'webm', 'mov', 'avi', 'mkv'];
-    function isVideoUrl(url) {
-      var ext = url.split('.').pop().toLowerCase();
-      return videoExts.indexOf(ext) !== -1;
+    function isVideoExt(ext) { return videoExts.indexOf(ext) !== -1; }
+
+    var allItems = [];
+    var lookup = {};
+
+    function addEntry(entry, galleryOnly) {
+      var key = entry[0], title = entry[1], desc = entry[2] || '', url = entry[3] || '', ext = entry[4] || 'jpg', isLarge = !!entry[5];
+      var idx = allItems.length;
+      allItems.push({ key: key, title: title, desc: desc, url: url, ext: ext, isLarge: isLarge, galleryOnly: galleryOnly });
+      lookup[key] = idx;
     }
 
-    function build() {
-      // Remove hero-bg / profile from found (lightbox 제외)
-      var heroSrc = null;
-      found = found.filter(function(item) {
-        if (item.key === 'hero-bg') { if (item.src) heroSrc = item.src; return false; }
-        if (item.key === 'profile') return false;
-        return true;
-      });
-      if (heroSrc && isVideoUrl(heroSrc)) {
-        var heroVideo = document.querySelector('.hero-bg-video');
-        if (heroVideo) heroVideo.src = heroSrc;
-      }
-
-      var grid = document.getElementById('projects-grid');
-      grid.innerHTML = '';
-      var cardCount = 0;
-      found.forEach(function(item, i) {
-        if (item.galleryOnly) return;
-        cardCount++;
-        var card = document.createElement('div');
-        card.className = 'project-card';
-        card.dataset.key = 'proj' + cardCount;
-        card.dataset.img = i;
-        var thumb = isVideoUrl(item.src)
-          ? '<video src="' + item.src + '" muted autoplay playsinline loop></video>'
-          : '<img src="' + item.src + '" alt="' + item.title + '">';
-        var urlVal = item.url || '';
-        card.innerHTML =
-          '<div class="project-img">' + thumb + '</div>' +
-          '<h3>' + item.title + '</h3>' +
-          '<p>' + (item.desc || '') + '</p>' +
-          (urlVal ? '<div class="project-link-wrap"><a href="' + urlVal + '" class="project-link" target="_blank" rel="noopener noreferrer">&#128279; Link</a></div>' : '');
-        grid.appendChild(card);
-      });
-
-      var currentIdx = 0;
-
-      function getTitle(idx) {
-        var card = document.querySelector('.project-card[data-img="' + idx + '"]');
-        if (card) {
-          var h3 = card.querySelector('h3');
-          if (h3 && h3.textContent) return h3.textContent;
+    if (typeof imageDataList !== 'undefined') {
+      imageDataList.forEach(function(e) { addEntry(e, false); });
+    }
+    if (typeof imageGalleryExtra !== 'undefined') {
+      imageGalleryExtra.forEach(function(e) {
+        if (lookup[e[0]] !== undefined) {
+          var idx = lookup[e[0]];
+          allItems[idx].title = e[1] || allItems[idx].title;
+          allItems[idx].desc = e[2] || allItems[idx].desc;
+          allItems[idx].url = e[3] || allItems[idx].url;
+        } else {
+          addEntry(e, true);
         }
-        return found[idx] ? found[idx].title : '';
-      }
+      });
+    }
 
-      function updateLightbox(idx) {
-        var src = found[idx].src;
-        var isVid = isVideoUrl(src);
-        lightboxImg.style.display = isVid ? 'none' : 'block';
-        lightboxVideo.style.display = isVid ? 'block' : 'none';
-        if (isVid) { lightboxVideo.src = src; lightboxVideo.load(); lightboxVideo.play(); }
-        else { lightboxImg.src = src; }
-        lightboxCounter.textContent = (currentIdx + 1) + ' / ' + found.length;
-        lightboxTitle.textContent = getTitle(idx);
-      }
+    function gridUrl(item) {
+      return isVideoExt(item.ext)
+        ? 'image/' + item.key + '.' + item.ext
+        : 'image/' + item.key + '-thumb.' + item.ext;
+    }
 
-      function openLightbox(idx) {
-        currentIdx = idx;
-        updateLightbox(idx);
-        lightbox.classList.add('active');
-      }
+    function lightboxUrl(item) {
+      if (isVideoExt(item.ext)) return 'image/' + item.key + '.' + item.ext;
+      return item.isLarge
+        ? 'image/' + item.key + '-lg.' + item.ext
+        : 'image/' + item.key + '.' + item.ext;
+    }
 
-      function closeLightbox() {
-        lightbox.classList.remove('active');
-        lightboxVideo.pause();
-      }
+    function posterUrl(key) { return 'image/' + key + '-poster.webp'; }
 
-      function moveImage(step) {
-        currentIdx = (currentIdx + step + found.length) % found.length;
-        updateLightbox(currentIdx);
-      }
+    var lightbox = document.getElementById('lightbox');
+    var lbImg = lightbox.querySelector('.lightbox-img');
+    var lbVideo = lightbox.querySelector('.lightbox-video');
+    var lbTitle = lightbox.querySelector('.lightbox-title');
+    var lbCounter = lightbox.querySelector('.lightbox-counter');
 
-      // --- Build Image gallery (grouped) ---
-      function createThumb(item, idx) {
-        var thumb = isVideoUrl(item.src)
-          ? '<video src="' + item.src + '" muted autoplay playsinline loop></video>'
-          : '<img src="' + item.src + '" alt="' + item.title + '">';
-        var div = document.createElement('div');
-        div.className = 'all-project-item';
-        div.dataset.img = idx;
-        div.innerHTML = thumb;
-        div.addEventListener('click', function() {
-          var i = parseInt(this.dataset.img);
-          if (!isNaN(i)) openLightbox(i);
-        });
-        return div;
-      }
+    // Hero background
+    var heroEntry = allItems[lookup['hero-bg']];
+    if (heroEntry && isVideoExt(heroEntry.ext)) {
+      var heroVideo = document.querySelector('.hero-bg-video');
+      if (heroVideo) heroVideo.src = 'image/' + heroEntry.key + '.' + heroEntry.ext;
+    }
 
-      var allList = document.getElementById('all-projects-list');
-      if (!allList) return;
+    // Filter for display (exclude hero-bg, profile)
+    var displayItems = allItems.filter(function(item) {
+      return item.key !== 'hero-bg' && item.key !== 'profile';
+    });
+
+    // Build project grid
+    var grid = document.getElementById('projects-grid');
+    grid.innerHTML = '';
+    var cardCount = 0;
+    displayItems.forEach(function(item, i) {
+      if (item.galleryOnly) return;
+      cardCount++;
+      var card = document.createElement('div');
+      card.className = 'project-card';
+      card.dataset.idx = i;
+      card.dataset.key = 'proj' + cardCount;
+      var gUrl = gridUrl(item);
+      var isVid = isVideoExt(item.ext);
+      var mediaHtml = isVid
+        ? '<video src="' + gUrl + '" muted autoplay playsinline loop loading="lazy" poster="' + posterUrl(item.key) + '"></video>'
+        : '<img src="' + gUrl + '" alt="' + item.title + '" loading="lazy">';
+      var urlVal = item.url || '';
+      card.innerHTML =
+        '<div class="project-img">' + mediaHtml + '</div>' +
+        '<h3>' + item.title + '</h3>' +
+        '<p>' + item.desc + '</p>' +
+        (urlVal ? '<div class="project-link-wrap"><a href="' + urlVal + '" class="project-link" target="_blank" rel="noopener noreferrer">&#128279; Link</a></div>' : '');
+      grid.appendChild(card);
+    });
+
+    var currentIdx = 0;
+
+    function updateLightbox(idx) {
+      var item = displayItems[idx];
+      if (!item) return;
+      var lbUrl = lightboxUrl(item);
+      var isVid = isVideoExt(item.ext);
+      lbImg.style.display = isVid ? 'none' : 'block';
+      lbVideo.style.display = isVid ? 'block' : 'none';
+      if (isVid) { lbVideo.src = lbUrl; lbVideo.load(); lbVideo.play(); }
+      else { lbImg.src = lbUrl; }
+      lbCounter.textContent = (currentIdx + 1) + ' / ' + displayItems.length;
+      lbTitle.textContent = item.title;
+    }
+
+    function openLightbox(idx) { currentIdx = idx; updateLightbox(idx); lightbox.classList.add('active'); }
+    function closeLightbox() { lightbox.classList.remove('active'); lbVideo.pause(); lbVideo.src = ''; lbImg.src = ''; }
+    function moveImage(step) {
+      currentIdx = (currentIdx + step + displayItems.length) % displayItems.length;
+      updateLightbox(currentIdx);
+    }
+
+    function createThumb(item, idx) {
+      var gUrl = gridUrl(item);
+      var isVid = isVideoExt(item.ext);
+      var html = isVid
+        ? '<video src="' + gUrl + '" muted autoplay playsinline loop loading="lazy" poster="' + posterUrl(item.key) + '"></video>'
+        : '<img src="' + gUrl + '" alt="' + item.title + '" loading="lazy">';
+      var div = document.createElement('div');
+      div.className = 'all-project-item';
+      div.dataset.idx = idx;
+      div.innerHTML = html;
+      div.addEventListener('click', function() { var i = parseInt(this.dataset.idx); if (!isNaN(i)) openLightbox(i); });
+      return div;
+    }
+
+    // Build Image gallery
+    var allList = document.getElementById('all-projects-list');
+    if (allList) {
       allList.innerHTML = '';
-
       var groups = {};
-      found.forEach(function(item, i) {
+      displayItems.forEach(function(item, i) {
         var parts = item.key.split('-');
         var baseKey = parts[0];
         if (!groups[baseKey]) groups[baseKey] = {main: null, subs: []};
-        if (parts.length === 1) {
-          groups[baseKey].main = {item: item, idx: i};
-        } else {
-          groups[baseKey].subs.push({item: item, idx: i});
-        }
+        if (parts.length === 1) groups[baseKey].main = {item: item, idx: i};
+        else groups[baseKey].subs.push({item: item, idx: i});
       });
 
       Object.keys(groups).forEach(function(baseKey) {
         var group = groups[baseKey];
-        if (group.subs.length === 0) {
-          var div = createThumb(group.main.item, group.main.idx);
-          allList.appendChild(div);
-          return;
-        }
+        if (group.subs.length === 0) { allList.appendChild(createThumb(group.main.item, group.main.idx)); return; }
 
-        var mainThumb = isVideoUrl(group.main.item.src)
-          ? '<video src="' + group.main.item.src + '" muted autoplay playsinline loop></video>'
-          : '<img src="' + group.main.item.src + '" alt="' + group.main.item.title + '">';
+        var mUrl = gridUrl(group.main.item);
+        var mVid = isVideoExt(group.main.item.ext);
         var mainDiv = document.createElement('div');
         mainDiv.className = 'all-project-item all-project-group-header';
-        mainDiv.innerHTML = mainThumb;
-
+        mainDiv.innerHTML = mVid
+          ? '<video src="' + mUrl + '" muted autoplay playsinline loop loading="lazy" poster="' + posterUrl(group.main.item.key) + '"></video>'
+          : '<img src="' + mUrl + '" alt="' + group.main.item.title + '" loading="lazy">';
         var badge = document.createElement('span');
         badge.className = 'all-project-badge';
         badge.textContent = '+' + group.subs.length;
@@ -321,135 +310,42 @@
 
         var subsWrap = document.createElement('div');
         subsWrap.className = 'all-project-subs';
-        group.subs.forEach(function(sub) {
-          subsWrap.appendChild(createThumb(sub.item, sub.idx));
-        });
-
+        group.subs.forEach(function(sub) { subsWrap.appendChild(createThumb(sub.item, sub.idx)); });
         var expanded = false;
         mainDiv.addEventListener('click', function(e) {
           expanded = !expanded;
           subsWrap.classList.toggle('open', expanded);
           badge.textContent = expanded ? '-' + group.subs.length : '+' + group.subs.length;
         });
-
         allList.appendChild(mainDiv);
         allList.appendChild(subsWrap);
       });
-
-      document.querySelectorAll('.project-card').forEach(function(card) {
-        card.addEventListener('click', function(e) {
-          if (e.target.closest('.project-link-wrap')) return;
-          var idx = parseInt(this.dataset.img);
-          if (!isNaN(idx)) openLightbox(idx);
-        });
-      });
-
-      var aboutImg = document.querySelector('.about-img img');
-      if (aboutImg) {
-        aboutImg.addEventListener('click', function() {
-          var clickedFile = this.getAttribute('src').split('/').pop().toLowerCase();
-          for (var i = 0; i < found.length; i++) {
-            if (found[i].src.split('/').pop().toLowerCase() === clickedFile) { openLightbox(i); return; }
-          }
-          openLightbox(0);
-        });
-      }
-
-      lightbox.addEventListener('click', function(e) {
-        if (e.target === lightbox) closeLightbox();
-      });
-
-      lightbox.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
-      lightbox.querySelector('.lightbox-prev').addEventListener('click', function() { moveImage(-1); });
-      lightbox.querySelector('.lightbox-next').addEventListener('click', function() { moveImage(1); });
-
-      document.addEventListener('keydown', function(e) {
-        if (!lightbox.classList.contains('active')) return;
-        if (e.key === 'Escape') closeLightbox();
-        if (e.key === 'ArrowLeft') moveImage(-1);
-        if (e.key === 'ArrowRight') moveImage(1);
-      });
     }
 
-    // --- Phase 1: probe main entries (imageDataList) ---
-    var mainEntries = [];
-    if (typeof imageDataList !== 'undefined') {
-      imageDataList.forEach(function(e) {
-        mainEntries.push({key: e[0], title: e[1], desc: e[2] || '', url: e[3] || '', galleryOnly: false});
-      });
-    }
-    if (!mainEntries.length) return;
-    found = new Array(mainEntries.length);
-    var loaded = 0;
-    mainEntries.forEach(function(entry, i) {
-      tryExtensions(entry.key, function(src) {
-        found[i] = {src: src, title: entry.title, desc: entry.desc, url: entry.url, key: entry.key, galleryOnly: entry.galleryOnly};
-        if (++loaded === mainEntries.length) probeAutoExtras();
-      }, function() {
-        if (++loaded === mainEntries.length) probeAutoExtras();
+    // Card click -> lightbox
+    document.querySelectorAll('.project-card').forEach(function(card) {
+      card.addEventListener('click', function(e) {
+        if (e.target.closest('.project-link-wrap')) return;
+        var idx = parseInt(this.dataset.idx);
+        if (!isNaN(idx)) openLightbox(idx);
       });
     });
 
-    // --- Phase 2: auto-discover key-1, key-2, key-3... ---
-    function probeAutoExtras() {
-      var baseKeys = [];
-      mainEntries.forEach(function(e) {
-        if (e.key !== 'hero-bg' && e.key !== 'profile') baseKeys.push(e.key);
-      });
+    // About img click -> open first lightbox item
+    var aboutImg = document.querySelector('.about-img img');
+    if (aboutImg) aboutImg.addEventListener('click', function() { openLightbox(0); });
 
-      var ki = 0;
-      function nextKey() {
-        if (ki >= baseKeys.length) {
-          probeManualExtras();
-          return;
-        }
-        var base = baseKeys[ki];
-        var suf = 1;
-        function trySuf() {
-          var ek = base + '-' + suf;
-          tryExtensions(ek, function(src) {
-            found.push({src: src, title: base + ' #' + suf, desc: '', url: '', key: ek, galleryOnly: true});
-            suf++;
-            trySuf();
-          }, function() {
-            ki++;
-            nextKey();
-          });
-        }
-        trySuf();
-      }
-      nextKey();
-    }
-
-    // --- Phase 3: probe manually listed extras (imageGalleryExtra) ---
-    function probeManualExtras() {
-      if (typeof imageGalleryExtra === 'undefined' || !imageGalleryExtra.length) {
-        build();
-        return;
-      }
-      var keyMap = {};
-      found.forEach(function(item, i) { keyMap[item.key] = i; });
-      var pending = 0;
-      imageGalleryExtra.forEach(function(e) {
-        var idx = keyMap[e[0]];
-        if (idx !== undefined) {
-          found[idx].title = e[1] || found[idx].title;
-          found[idx].desc = e[2] || found[idx].desc;
-          found[idx].url = e[3] || found[idx].url;
-          return;
-        }
-        pending++;
-        tryExtensions(e[0], function(src) {
-          found.push({src: src, title: e[1], desc: e[2] || '', url: e[3] || '', key: e[0], galleryOnly: true});
-          if (--pending === 0) build();
-        }, function() {
-          if (--pending === 0) build();
-        });
-      });
-      if (pending === 0) build();
-    }
+    lightbox.addEventListener('click', function(e) { if (e.target === lightbox) closeLightbox(); });
+    lightbox.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
+    lightbox.querySelector('.lightbox-prev').addEventListener('click', function() { moveImage(-1); });
+    lightbox.querySelector('.lightbox-next').addEventListener('click', function() { moveImage(1); });
+    document.addEventListener('keydown', function(e) {
+      if (!lightbox.classList.contains('active')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') moveImage(-1);
+      if (e.key === 'ArrowRight') moveImage(1);
+    });
   })();
-
 </script>
 </body>
 </html>
