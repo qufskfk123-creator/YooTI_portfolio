@@ -134,6 +134,20 @@ body {
   box-shadow: 0 4px 12px rgba(37,99,235,0.4);
 }
 
+.btn-pdf {
+  display: block;
+  margin: 20px auto 0;
+  background: transparent;
+  border: 2px solid #2563eb;
+  color: #2563eb;
+  font-size: 0.9rem;
+}
+
+.btn-pdf:hover {
+  background: #2563eb;
+  color: #fff;
+}
+
 /* Sections */
 section {
   padding: 80px 0;
@@ -687,4 +701,115 @@ section {
     padding: 10px 12px;
     font-size: 1.5rem;
   }
+}
+
+@media print {
+  * {
+    background: #fff !important;
+    color: #111 !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    border-color: #ccc !important;
+  }
+
+  body {
+    background: #fff;
+    color: #111;
+  }
+
+  .navbar,
+  .hero-bg-video,
+  .hero-overlay,
+  .lightbox,
+  .btn-pdf {
+    display: none !important;
+  }
+
+  .hero {
+    height: auto;
+    min-height: auto;
+    padding: 60px 0;
+  }
+
+  .all-projects {
+    display: block !important;
+  }
+
+  .skill-card,
+  .project-card,
+  .career-item,
+  .contact-item,
+  .about-img {
+    border: 1px solid #ccc !important;
+  }
+
+  .project-img {
+    background: #f5f5f5 !important;
+  }
+
+  .section-title::after {
+    background: #2563eb !important;
+  }
+
+  .highlight {
+    color: #2563eb !important;
+  }
+
+  a {
+    color: #2563eb !important;
+    text-decoration: underline !important;
+  }
+
+  .career-subtitle {
+    color: #b8860b !important;
+  }
+}
+
+.pdf-export {
+  width: 1100px !important;
+  margin: 0 auto !important;
+}
+
+.pdf-export,
+.pdf-export * {
+  background: #fff !important;
+  color: #111 !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+  border-color: #ddd !important;
+}
+
+.pdf-export .navbar,
+.pdf-export .hero-bg-video,
+.pdf-export .hero-overlay,
+.pdf-export .lightbox,
+.pdf-export .btn-pdf {
+  display: none !important;
+}
+
+.pdf-export .hero {
+  height: auto !important;
+  min-height: auto !important;
+  padding: 60px 0 !important;
+}
+
+.pdf-export .all-projects {
+  display: block !important;
+}
+
+.pdf-export a {
+  color: #2563eb !important;
+  text-decoration: underline !important;
+}
+
+.pdf-export .highlight {
+  color: #2563eb !important;
+}
+
+.pdf-export .career-subtitle {
+  color: #b8860b !important;
+}
+
+.pdf-export .project-img {
+  background: #f5f5f5 !important;
 }

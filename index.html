@@ -30,6 +30,7 @@
       <h1><span class="highlight" data-content="hero.name">TAEIL YOO</span></h1>
       <p data-content="hero.subtitle">3D Graphics & VFX Artist</p>
       <a href="#projects" class="btn" data-content="hero.btnText" data-href="hero.btnHref">View My Work</a>
+      <button onclick="downloadPDF()" class="btn btn-pdf">Download PDF</button>
     </div>
   </section>
 
@@ -103,9 +104,101 @@
     <div class="lightbox-counter"></div>
   </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>window.jsPDF = window.jspdf.jsPDF;</script>
 <script src="contentData.js"></script>
 <script src="imageData.js"></script>
 <script>
+  function downloadPDF() {
+    document.body.classList.add('pdf-export');
+
+    var allProj = document.querySelector('.all-projects');
+    var allProjWasActive = allProj && allProj.classList.contains('active');
+    if (allProj) allProj.classList.add('active');
+
+    var subsState = [];
+    document.querySelectorAll('.all-project-subs').forEach(function(s) {
+      var items = [];
+      s.querySelectorAll('.all-project-item').forEach(function(item) {
+        items.push(item);
+        item.style.opacity = '1';
+        item.style.transform = 'none';
+      });
+      subsState.push({ el: s, wasOpen: s.classList.contains('open'), items: items });
+      s.classList.add('open');
+    });
+
+    var videoReplaces = [];
+    document.querySelectorAll('video').forEach(function(v) {
+      var img = document.createElement('img');
+      var poster = v.getAttribute('poster');
+      if (poster) img.src = poster;
+      img.style.cssText = v.style.cssText;
+      img.className = v.className;
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'cover';
+      v.parentNode.replaceChild(img, v);
+      videoReplaces.push({ img: img, video: v });
+    });
+
+    var imgReplaces = [];
+    document.querySelectorAll('.all-project-item img, .project-img img, .about-img img').forEach(function(img) {
+      if (!img.src) return;
+      var div = document.createElement('div');
+      div.style.width = '100%';
+      div.style.height = '100%';
+      div.style.backgroundImage = "url('" + img.src + "')";
+      div.style.backgroundSize = 'cover';
+      div.style.backgroundPosition = 'center';
+      div.style.backgroundRepeat = 'no-repeat';
+      if (img.className) div.className = img.className;
+      img.parentNode.replaceChild(div, img);
+      imgReplaces.push({ div: div, img: img });
+    });
+
+    function restoreAll() {
+      document.body.classList.remove('pdf-export');
+      if (allProj && !allProjWasActive) allProj.classList.remove('active');
+      subsState.forEach(function(s) {
+        if (!s.wasOpen) s.el.classList.remove('open');
+        s.items.forEach(function(item) {
+          item.style.opacity = '';
+          item.style.transform = '';
+        });
+      });
+      videoReplaces.forEach(function(r) {
+        r.img.parentNode.replaceChild(r.video, r.img);
+      });
+      imgReplaces.forEach(function(r) {
+        r.div.parentNode.replaceChild(r.img, r.div);
+      });
+    }
+
+    setTimeout(function() {
+      html2canvas(document.body, {
+        scale: 2,
+        backgroundColor: '#fff',
+        useCORS: true,
+        logging: false
+      }).then(function(canvas) {
+        var imgData = canvas.toDataURL('image/jpeg', 0.95);
+        var pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: [210, canvas.height / canvas.width * 210]
+        });
+        pdf.addImage(imgData, 'JPEG', 0, 0, 210, canvas.height / canvas.width * 210);
+        pdf.save('TAEIL_YOO_Portfolio.pdf');
+        restoreAll();
+      }).catch(function(e) {
+        console.error('PDF download failed:', e);
+        restoreAll();
+      });
+    }, 100);
+  }
+
   function renderContent() {
     if (typeof contentData === 'undefined') return;
     document.title = contentData.pageTitle || 'Portfolio';
