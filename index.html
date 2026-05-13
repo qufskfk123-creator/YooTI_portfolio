@@ -138,6 +138,9 @@
     var contactInfo = document.getElementById('contact-info');
     if (contactInfo && contentData.contact && contentData.contact.items) {
       contactInfo.innerHTML = contentData.contact.items.map(function(item) {
+        if (item.url) {
+          return '<a href="' + item.url + '" target="_blank" class="contact-item"><span class="contact-icon">' + item.icon + '</span><span>' + item.text + '</span></a>';
+        }
         return '<div class="contact-item"><span class="contact-icon">' + item.icon + '</span><span>' + item.text + '</span></div>';
       }).join('');
     }

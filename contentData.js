@@ -34,8 +34,9 @@ var contentData = {
   contact: {
     sectionTitle: "Contact",
     items: [
+      { icon: "&#127760;", text: "Homepage", url: "https://yoo-ti-portfolio.vercel.app" },
       { icon: "&#9993;", text: "qufskfk123@gmail.com" },
-      { icon: "&#9742;", text: "+82 10-5553-810978" }
+      { icon: "&#9742;", text: "+82 10-5553-8109" }
     ]
   },
   career: {
