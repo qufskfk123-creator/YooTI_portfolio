@@ -39,10 +39,7 @@
       <h2 class="section-title" data-content="about.sectionTitle">About Me</h2>
       <div class="about-content">
         <div class="about-img">
-          <picture>
-            <source srcset="image/profile.webp" type="image/webp">
-            <img src="image/profile.jpg" alt="Profile photo" loading="lazy">
-          </picture>
+          <img src="image/profile.jpg" alt="Profile photo" loading="lazy">
         </div>
         <div class="about-text">
           <p data-content="about.desc1"></p>
@@ -113,22 +110,6 @@
   function downloadPDF() {
     document.body.classList.add('pdf-export');
 
-    var allProj = document.querySelector('.all-projects');
-    var allProjWasActive = allProj && allProj.classList.contains('active');
-    if (allProj) allProj.classList.add('active');
-
-    var subsState = [];
-    document.querySelectorAll('.all-project-subs').forEach(function(s) {
-      var items = [];
-      s.querySelectorAll('.all-project-item').forEach(function(item) {
-        items.push(item);
-        item.style.opacity = '1';
-        item.style.transform = 'none';
-      });
-      subsState.push({ el: s, wasOpen: s.classList.contains('open'), items: items });
-      s.classList.add('open');
-    });
-
     var videoReplaces = [];
     document.querySelectorAll('video').forEach(function(v) {
       var img = document.createElement('img');
@@ -160,14 +141,6 @@
 
     function restoreAll() {
       document.body.classList.remove('pdf-export');
-      if (allProj && !allProjWasActive) allProj.classList.remove('active');
-      subsState.forEach(function(s) {
-        if (!s.wasOpen) s.el.classList.remove('open');
-        s.items.forEach(function(item) {
-          item.style.opacity = '';
-          item.style.transform = '';
-        });
-      });
       videoReplaces.forEach(function(r) {
         r.img.parentNode.replaceChild(r.video, r.img);
       });
@@ -247,19 +220,7 @@
 
   renderContent();
 
-  var allSection = document.getElementById('all-projects');
-  document.querySelector('.nav-links').addEventListener('click', function(e) {
-    var link = e.target.closest('a');
-    if (!link) return;
-    allSection.classList.toggle('active', link.getAttribute('href') === '#all-projects');
-  });
 
-  var allObserver = new IntersectionObserver(function(entries) {
-    entries.forEach(function(entry) {
-      if (!entry.isIntersecting) allSection.classList.remove('active');
-    });
-  }, { threshold: 0 });
-  allObserver.observe(allSection);
 
   (function() {
     var videoExts = ['mp4', 'webm', 'mov', 'avi', 'mkv'];
@@ -292,9 +253,8 @@
     }
 
     function gridUrl(item) {
-      return isVideoExt(item.ext)
-        ? 'image/' + item.key + '.' + item.ext
-        : 'image/' + item.key + '-thumb.' + item.ext;
+      if (isVideoExt(item.ext)) return 'image/' + item.key + '.' + item.ext;
+      return 'image/' + item.key + '.' + item.ext;
     }
 
     function lightboxUrl(item) {
@@ -350,9 +310,14 @@
     });
 
     var currentIdx = 0;
+    var groupItems = [];
+
+    function getBaseKey(key) {
+      return key.indexOf('-') !== -1 ? key.split('-')[0] : key;
+    }
 
     function updateLightbox(idx) {
-      var item = displayItems[idx];
+      var item = groupItems[idx];
       if (!item) return;
       var lbUrl = lightboxUrl(item);
       var isVid = isVideoExt(item.ext);
@@ -360,14 +325,31 @@
       lbVideo.style.display = isVid ? 'block' : 'none';
       if (isVid) { lbVideo.src = lbUrl; lbVideo.load(); lbVideo.play(); }
       else { lbImg.src = lbUrl; }
-      lbCounter.textContent = (currentIdx + 1) + ' / ' + displayItems.length;
+      lbCounter.textContent = (currentIdx + 1) + ' / ' + groupItems.length;
       lbTitle.textContent = item.title;
     }
 
-    function openLightbox(idx) { currentIdx = idx; updateLightbox(idx); lightbox.classList.add('active'); }
-    function closeLightbox() { lightbox.classList.remove('active'); lbVideo.pause(); lbVideo.src = ''; lbImg.src = ''; }
+    function openLightbox(idx) {
+      var item = displayItems[idx];
+      if (!item) return;
+      var baseKey = getBaseKey(item.key);
+      groupItems = [];
+      displayItems.forEach(function(di) {
+        if (getBaseKey(di.key) === baseKey) groupItems.push(di);
+      });
+      if (groupItems.length === 0) groupItems = [item];
+      currentIdx = -1;
+      for (var g = 0; g < groupItems.length; g++) {
+        if (groupItems[g].key === item.key) { currentIdx = g; break; }
+      }
+      if (currentIdx === -1) currentIdx = 0;
+      updateLightbox(currentIdx);
+      lightbox.classList.add('active');
+    }
+    function closeLightbox() { lightbox.classList.remove('active'); lbVideo.pause(); lbVideo.src = ''; lbImg.src = ''; groupItems = []; }
     function moveImage(step) {
-      currentIdx = (currentIdx + step + displayItems.length) % displayItems.length;
+      if (groupItems.length === 0) return;
+      currentIdx = (currentIdx + step + groupItems.length) % groupItems.length;
       updateLightbox(currentIdx);
     }
 
@@ -389,42 +371,47 @@
     var allList = document.getElementById('all-projects-list');
     if (allList) {
       allList.innerHTML = '';
-      var groups = {};
+      var subItems = [];
       displayItems.forEach(function(item, i) {
-        var parts = item.key.split('-');
-        var baseKey = parts[0];
-        if (!groups[baseKey]) groups[baseKey] = {main: null, subs: []};
-        if (parts.length === 1) groups[baseKey].main = {item: item, idx: i};
-        else groups[baseKey].subs.push({item: item, idx: i});
+        if (item.key.indexOf('-') !== -1) subItems.push({ item: item, idx: i });
+      });
+      var groups = {};
+      subItems.forEach(function(entry) {
+        var baseKey = entry.item.key.split('-')[0];
+        if (!groups[baseKey]) groups[baseKey] = [];
+        groups[baseKey].push(entry);
       });
 
       Object.keys(groups).forEach(function(baseKey) {
-        var group = groups[baseKey];
-        if (group.subs.length === 0) { allList.appendChild(createThumb(group.main.item, group.main.idx)); return; }
+        var entries = groups[baseKey];
+        var rest = entries.slice(1);
 
-        var mUrl = gridUrl(group.main.item);
-        var mVid = isVideoExt(group.main.item.ext);
         var mainDiv = document.createElement('div');
         mainDiv.className = 'all-project-item all-project-group-header';
-        mainDiv.innerHTML = mVid
-          ? '<video src="' + mUrl + '" muted autoplay playsinline loop loading="lazy" poster="' + posterUrl(group.main.item.key) + '"></video>'
-          : '<img src="' + mUrl + '" alt="' + group.main.item.title + '" loading="lazy">';
-        var badge = document.createElement('span');
-        badge.className = 'all-project-badge';
-        badge.textContent = '+' + group.subs.length;
-        mainDiv.appendChild(badge);
+        var firstUrl = gridUrl(entries[0].item);
+        mainDiv.innerHTML = '<img src="' + firstUrl + '" alt="' + entries[0].item.title + '" loading="lazy">';
+        if (rest.length > 0) {
+          var badge = document.createElement('span');
+          badge.className = 'all-project-badge';
+          badge.textContent = '+' + rest.length;
+          mainDiv.appendChild(badge);
 
-        var subsWrap = document.createElement('div');
-        subsWrap.className = 'all-project-subs';
-        group.subs.forEach(function(sub) { subsWrap.appendChild(createThumb(sub.item, sub.idx)); });
-        var expanded = false;
-        mainDiv.addEventListener('click', function(e) {
-          expanded = !expanded;
-          subsWrap.classList.toggle('open', expanded);
-          badge.textContent = expanded ? '-' + group.subs.length : '+' + group.subs.length;
-        });
+          var subsWrap = document.createElement('div');
+          subsWrap.className = 'all-project-subs';
+          rest.forEach(function(entry) { subsWrap.appendChild(createThumb(entry.item, entry.idx)); });
+          var expanded = false;
+          mainDiv.addEventListener('click', function(e) {
+            if (e.target.tagName === 'IMG') {
+              openLightbox(entries[0].idx);
+              return;
+            }
+            expanded = !expanded;
+            subsWrap.classList.toggle('open', expanded);
+            badge.textContent = expanded ? '-' + rest.length : '+' + rest.length;
+          });
+        }
         allList.appendChild(mainDiv);
-        allList.appendChild(subsWrap);
+        if (subsWrap) allList.appendChild(subsWrap);
       });
     }
 
