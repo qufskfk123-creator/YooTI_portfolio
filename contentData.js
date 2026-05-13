@@ -38,6 +38,14 @@ var contentData = {
       { icon: "&#9742;", text: "+82 10-5553-810978" }
     ]
   },
+  career: {
+    sectionTitle: "Experience",
+    items: [
+      { period: "2023 - Present", title: "3D Artist", subtitle: "Freelance", desc: "캐릭터 모델링, 환경 디자인, VFX 시뮬레이션 등 다양한 프로젝트 수행" },
+      { period: "2021 - 2023", title: "Junior 3D Artist", subtitle: "XYZ Studio", desc: "게임 에셋 제작 및 애니메이션, 라이팅 파이프라인 구축 참여" },
+      { period: "2017 - 2021", title: "3D Designer", subtitle: "ABC Creative", desc: "광고 및 영상용 3D 그래픽 제작, 리깅 및 모션 그래픽 작업" }
+    ]
+  },
   footer: {
     copyright: "&copy; 2026 TAEIL YOO. All rights reserved."
   }

@@ -48,6 +48,10 @@
           <p data-content="about.desc2"></p>
         </div>
       </div>
+      <div class="about-career" id="about-career">
+        <h3 class="career-title" data-content="career.sectionTitle">Experience</h3>
+        <div class="career-list"></div>
+      </div>
     </div>
   </section>
 
@@ -135,6 +139,12 @@
     if (contactInfo && contentData.contact && contentData.contact.items) {
       contactInfo.innerHTML = contentData.contact.items.map(function(item) {
         return '<div class="contact-item"><span class="contact-icon">' + item.icon + '</span><span>' + item.text + '</span></div>';
+      }).join('');
+    }
+    var careerList = document.querySelector('.career-list');
+    if (careerList && contentData.career && contentData.career.items) {
+      careerList.innerHTML = contentData.career.items.map(function(item) {
+        return '<div class="career-item"><span class="career-period">' + item.period + '</span><div class="career-info"><strong>' + item.title + '</strong><span class="career-subtitle">' + item.subtitle + '</span><p>' + item.desc + '</p></div></div>';
       }).join('');
     }
   }

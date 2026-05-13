@@ -198,6 +198,83 @@ section {
   color: #ccc;
 }
 
+/* About Career */
+.about-career {
+  margin-top: 60px;
+  border-top: 1px solid #222;
+  padding-top: 40px;
+}
+
+.career-title {
+  font-size: 1.4rem;
+  color: #fff;
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.career-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.career-item {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  background: #111;
+  border-radius: 10px;
+  padding: 20px 24px;
+  transition: background 0.3s;
+}
+
+.career-item:hover {
+  background: #1a1a1a;
+}
+
+.career-period {
+  flex-shrink: 0;
+  min-width: 130px;
+  font-size: 0.9rem;
+  color: #888;
+  padding-top: 2px;
+}
+
+.career-info {
+  flex: 1;
+}
+
+.career-info strong {
+  display: block;
+  font-size: 1.05rem;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.career-subtitle {
+  display: block;
+  font-size: 0.85rem;
+  color: #e1b12c;
+  margin-bottom: 6px;
+}
+
+.career-info p {
+  font-size: 0.95rem;
+  color: #999;
+  margin: 0;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .career-item {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .career-period {
+    min-width: auto;
+  }
+}
+
 /* Skills */
 .skills-grid {
   display: grid;
