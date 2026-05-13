@@ -252,12 +252,21 @@
       });
     }
 
+    function subfolderUrl(key, ext) {
+      var dash = key.indexOf('-');
+      if (dash === -1) return null;
+      return 'image/' + key.slice(0, dash) + '/' + key.slice(dash + 1) + '.' + ext;
+    }
+
     function gridUrl(item) {
-      if (isVideoExt(item.ext)) return 'image/' + item.key + '.' + item.ext;
+      var sf = subfolderUrl(item.key, item.ext);
+      if (sf) return sf;
       return 'image/' + item.key + '.' + item.ext;
     }
 
     function lightboxUrl(item) {
+      var sf = subfolderUrl(item.key, item.ext);
+      if (sf) return sf;
       if (isVideoExt(item.ext)) return 'image/' + item.key + '.' + item.ext;
       return item.isLarge
         ? 'image/' + item.key + '-lg.' + item.ext
