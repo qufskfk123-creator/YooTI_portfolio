@@ -14,15 +14,15 @@ var contentData = {
   },
   pageTitle: "Portfolio",
   hero: {
-    name: "TAE IL .  YOO",
-    subtitle: "3D Graphics & VFX Artist",
+    name: "3D Graphics & Technical Artist",
+    subtitle: "TAEIL. YOO - 유태일",
     btnText: "View My Work",
     btnHref: "#projects"
   },
   about: {
     sectionTitle: "About Me",
-    desc1: "3D 아티스트로서 캐릭터 모델링, 환경 디자인, VFX 시뮬레이션까지 폭넓은 파이프라인을 다룹니다.다양한 도구를 활용하여 자유롭게 표현합니다.",
-    desc2: "게임, 영상, 광고 등 다양한 매체에서 활용 가능한 고품질 3D 에셋 제작이 주 특기이며, 리깅/애니메이션/라이팅까지 end-to-end 워크플로우에 능숙합니다."
+    desc1: "3D 아티스트 유태일입니다. 캐릭터 모델링, 환경 디자인, VFX 시뮬레이션까지 폭넓은 3D 파이프라인을 다루며, 아이디어를 현실감 있는 비주얼로 구현하는 작업을 수행하고 있습니다.",
+    desc2: "실제 환경을 재현한 디지털 트윈, 학습 시뮬레이션, 산업 설비 모델링, 모션 그래픽에 이르기까지 공학적 정확성과 시각적 완성도를 모두 요구하는 프로젝트를 중심으로 활동하고 있습니다."
   },
   skills: {
     sectionTitle: "Skills",

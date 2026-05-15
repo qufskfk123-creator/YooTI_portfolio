@@ -67,13 +67,15 @@ for (const dir of subdirs) {
     })
     .sort(naturalSort);
 
-  const parentTitle = parentTitles[dir] || '';
+  const dirNum = dir.match(/^(\d+)/);
+  const parentTitle = parentTitles[dirNum?.[1] || dir] || '';
 
   finalFiles.forEach((f) => {
     const ext = path.extname(f).slice(1);
     const seq = path.basename(f, path.extname(f));
     const key = `${dir}-${seq}`;
-    entries.push([key, `${parentTitle} detail ${seq}`, '', '', ext, false]);
+    const title = parentTitle ? `${parentTitle} detail ${seq}` : `Project ${dirNum?.[1] || dir} detail ${seq}`;
+    entries.push([key, title, '', '', ext, false]);
   });
 }
 
