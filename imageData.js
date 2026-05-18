@@ -98,7 +98,6 @@ var imageGalleryExtra = [
   ["6. Video editing-6","Facility Digital Twin detail 6","","","jpg",false],
   ["6. Video editing-7","Facility Digital Twin detail 7","","","jpg",false],
   ["6. Video editing-8","Facility Digital Twin detail 8","","","jpg",false],
-  ["6. Video editing-9","Facility Digital Twin detail 9","","","jpg",false],
 ];
 
 // __AUTO_GENERATED_GALLERY_EXTRA_END__

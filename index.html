@@ -31,7 +31,7 @@
       <h1><span class="highlight" data-content="hero.name">TAEIL YOO</span></h1>
       <p data-content="hero.subtitle">3D Graphics & VFX Artist</p>
       <a href="#projects" class="btn" data-content="hero.btnText" data-href="hero.btnHref">View My Work</a><br>
-      <a href="pdf/Portfolio_TAEIL_YOO.pdf" download class="btn btn-pdf">Download PDF</a>
+      <a href="#" onclick="downloadPDF(); return false;" class="btn btn-pdf">Download PDF</a>
     </div>
   </section>
 
@@ -51,6 +51,7 @@
         <h3 class="career-title" data-content="career.sectionTitle">Experience</h3>
         <div class="career-list"></div>
       </div>
+
     </div>
   </section>
 
@@ -58,6 +59,14 @@
     <div class="container">
       <h2 class="section-title" data-content="skills.sectionTitle">Skills</h2>
       <div class="skills-grid" id="skills-grid">
+      </div>
+      <div class="about-certification" id="about-certification">
+        <h3 class="career-title" data-content="certification.sectionTitle">Certification</h3>
+        <div class="certification-list"></div>
+      </div>
+      <div class="education" id="education">
+        <h3 class="education-title" data-content="education.sectionTitle">Education Progress</h3>
+        <div class="education-list" id="education-list"></div>
       </div>
     </div>
   </section>
@@ -129,9 +138,33 @@
     var logo = document.querySelector('.logo');
     if (logo && contentData.nav) logo.textContent = contentData.nav.logo || 'Portfolio';
     var skillsGrid = document.getElementById('skills-grid');
-    if (skillsGrid && contentData.skills && contentData.skills.items) {
-      skillsGrid.innerHTML = contentData.skills.items.map(function(s) {
-        return '<div class="skill-card">' + s + '</div>';
+    if (skillsGrid && contentData.skills && contentData.skills.categories) {
+      skillsGrid.innerHTML = contentData.skills.categories.map(function(cat) {
+        var itemsHtml = (cat.items && cat.items.length)
+          ? cat.items.map(function(s) { return '<span class="skill-tag">' + s + '</span>'; }).join('')
+          : '<span class="skill-tag">' + cat.name + '</span>';
+        return '<div class="skill-category"><span class="skill-category-title">' + cat.name + '</span><div class="skill-category-items">' + itemsHtml + '</div></div>';
+      }).join('');
+      // Scroll reveal animation
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+          }
+        });
+      }, { threshold: 0.1 });
+      skillsGrid.querySelectorAll('.skill-category').forEach(function(card, i) {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        card.style.transition = 'opacity 0.5s ease ' + (i * 0.1) + 's, transform 0.5s ease ' + (i * 0.1) + 's';
+        observer.observe(card);
+      });
+    }
+    var educationList = document.getElementById('education-list');
+    if (educationList && contentData.education && contentData.education.items) {
+      educationList.innerHTML = contentData.education.items.map(function(item) {
+        return '<span class="edu-tag">' + item + '</span>';
       }).join('');
     }
     var contactInfo = document.getElementById('contact-info');
@@ -143,12 +176,24 @@
         return '<div class="contact-item"><span class="contact-icon">' + item.icon + '</span><span>' + item.text + '</span></div>';
       }).join('');
     }
-    var careerList = document.querySelector('.career-list');
-    if (careerList && contentData.career && contentData.career.items) {
-      careerList.innerHTML = contentData.career.items.map(function(item) {
-        return '<div class="career-item"><span class="career-period">' + item.period + '</span><div class="career-info"><strong>' + item.title + '</strong><span class="career-subtitle">' + item.subtitle + '</span><p>' + item.desc + '</p></div></div>';
+    function renderTimeline(container, items) {
+      if (!container || !items) return;
+      container.innerHTML = items.map(function(item) {
+        var subtitleHtml = item.subtitle ? '<div class="timeline-subtitle">' + item.subtitle + '</div>' : '';
+        var descHtml = item.desc ? '<p class="timeline-desc">' + item.desc + '</p>' : '';
+        return '<div class="timeline-item"><div class="timeline-date">' + item.period + '</div><div class="timeline-title">' + item.title + '</div>' + subtitleHtml + descHtml + '</div>';
       }).join('');
     }
+    var careerList = document.querySelector('.career-list');
+    if (careerList) careerList.className = 'timeline';
+    renderTimeline(careerList, contentData.career && contentData.career.items);
+    var certList = document.querySelector('.certification-list');
+    if (certList && contentData.certification && contentData.certification.items) {
+      certList.innerHTML = contentData.certification.items.map(function(item) {
+        return '<span class="cert-tag">' + item + '</span>';
+      }).join('');
+    }
+
   }
 
   renderContent();
@@ -240,7 +285,7 @@
       var gUrl = gridUrl(item);
       var isVid = isVideoExt(item.ext);
       var mediaHtml = isVid
-        ? '<video src="' + gUrl + '" muted autoplay playsinline loop loading="lazy" poster="' + posterUrl(item.key) + '"></video>'
+        ? '<video src="' + gUrl + '" muted autoplay playsinline loop loading="lazy" poster="' + posterUrl(item.key) + '"></video><div class="print-fallback-video"><span>&#9654;</span></div>'
         : '<img src="' + gUrl + '" alt="' + item.title + '" loading="lazy">';
       var urlVal = item.url || '';
       card.innerHTML =
@@ -299,7 +344,7 @@
       var gUrl = gridUrl(item);
       var isVid = isVideoExt(item.ext);
       var html = isVid
-        ? '<video src="' + gUrl + '" muted autoplay playsinline loop loading="lazy" poster="' + posterUrl(item.key) + '"></video>'
+        ? '<video src="' + gUrl + '" muted autoplay playsinline loop loading="lazy" poster="' + posterUrl(item.key) + '"></video><div class="print-fallback-video"><span>&#9654;</span></div>'
         : '<img src="' + gUrl + '" alt="' + item.title + '" loading="lazy">';
       var div = document.createElement('div');
       div.className = 'all-project-item';
@@ -385,6 +430,28 @@
       if (e.key === 'ArrowRight') moveImage(1);
     });
   })();
+
+  function downloadPDF() {
+    var urls = [];
+    var allImgs = document.querySelectorAll('img');
+    allImgs.forEach(function(img) {
+      var s = img.src;
+      if (s && urls.indexOf(s) === -1) urls.push(s);
+      img.setAttribute('loading', 'eager');
+      if (!img.complete && s) {
+        img.src = '';
+        img.src = s;
+      }
+    });
+    document.querySelectorAll('video').forEach(function(v) {
+      var p = v.getAttribute('poster');
+      if (p && urls.indexOf(p) === -1) urls.push(p);
+    });
+    if (urls.length === 0) { window.print(); return; }
+    var n = 0, t = urls.length, d = function() { n++; if (n >= t) window.print(); };
+    urls.forEach(function(u) { var i = new Image(); i.onload = d; i.onerror = d; i.src = u; });
+    setTimeout(function() { window.print(); }, 4000);
+  }
 </script>
 </body>
 </html>

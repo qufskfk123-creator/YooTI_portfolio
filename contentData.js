@@ -26,7 +26,24 @@ var contentData = {
   },
   skills: {
     sectionTitle: "Skills",
-    items: ["3dsMax", "Blender", "AutoCAD", "InfraWroks", "Qgis","Renderer", "Unreal Engine", "Unity", "After Effects", "PhotoShop", "PM", "WebGL"]
+    categories: [
+      {
+        name: "Activity",
+        items: ["3ds Max", "Blender", "AutoCAD", "FreeCad", "Qgis", "Unreal", "Unity", "PM Project"]
+      },
+      {
+        name: "Render",
+        items: ["V-Ray", "Arnold", "Lumion", "TwinMotion", "D5render"]
+      },
+      {
+        name: "NVIDIA Omniverse",
+        items: ["USD Composer","Isaac Sim", "OpenUSD", "MDL"]
+      },
+      {
+        name: "Adobe",
+        items: ["Photoshop", "Illustrator", "After Effects", "Premiere"]
+      }
+    ]
   },
   projects: {
     sectionTitle: "Projects"
@@ -42,9 +59,26 @@ var contentData = {
   career: {
     sectionTitle: "Experience",
     items: [
-      { period: "2023 - Present", title: "3D Artist", subtitle: "Freelance", desc: "캐릭터 모델링, 환경 디자인, VFX 시뮬레이션 등 다양한 프로젝트 수행" },
-      { period: "2021 - 2023", title: "Junior 3D Artist", subtitle: "XYZ Studio", desc: "게임 에셋 제작 및 애니메이션, 라이팅 파이프라인 구축 참여" },
-      { period: "2017 - 2021", title: "3D Designer", subtitle: "ABC Creative", desc: "광고 및 영상용 3D 그래픽 제작, 리깅 및 모션 그래픽 작업" }
+      { period: "2022 ~ ", title: "Digitaltwin Technical Engineer", subtitle: "U&E", desc: "" },
+      { period: "2021", title: "M&E Technical Engineer", subtitle: "한국인프라", desc: "" },
+      { period: "2018", title: "전시 부스 디자인", subtitle: "더블에스 컴퍼니", desc: "" },
+      { period: "2017", title: "국방 장비 3D 그래픽 교보재 제작", subtitle: "크레픽", desc: "" },
+      { period: "2016", title: "인테리어 디자인 및 시공", subtitle: "폼크리에이티브", desc: "" },
+      { period: "2013", title: "삼성SDS 수원 센터 상주 서버OP", subtitle: "시스게이트", desc: "" }
+    ]
+  },
+  certification: {
+    sectionTitle: "Certification",
+    items: ["Media and Entertainment for Sales", "Media and Entertainment for Technical","Advanced Materials Analysis Simulation for Sales"]
+
+  },
+  education: {
+    sectionTitle: "Education Progress",
+    items: [
+      "CAD&Graphics - 3ds Max & Arnold 웨비나",
+      "AllshowTV - 3dsMax 건축 모델링 웨비나",
+      "군부대 - 3ds Max 교육",
+      "서울시공간구축 - 교육"
     ]
   },
   footer: {
