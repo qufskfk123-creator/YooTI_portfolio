@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portfolio</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="preload" href="image/hero-bg.mp4" as="video" type="video/mp4">
   <link rel="preload" href="image/hero-bg.webm" as="video" type="video/webm">
   <link rel="preload" href="image/profile.webp" as="image" type="image/webp">
 
@@ -26,54 +27,59 @@
 
   <section id="hero" class="hero">
     <video class="hero-bg-video" muted autoplay loop playsinline></video>
-    <div class="hero-overlay"></div>
     <div class="container hero-content">
-      <h1><span class="highlight" data-content="hero.name">TAEIL YOO</span></h1>
-      <p data-content="hero.subtitle">3D Graphics & VFX Artist</p>
-      <a href="#projects" class="btn" data-content="hero.btnText" data-href="hero.btnHref">View My Work</a><br>
-      <a href="#" onclick="downloadPDF(); return false;" class="btn btn-pdf">Download PDF</a>
+      <div class="hero-text">
+        <p class="hero-label" data-content="hero.subtitle"></p>
+        <h1 data-content="hero.name"></h1>
+        <p class="hero-desc" data-content="hero.desc"></p>
+        <div class="hero-btns">
+          <a href="#projects" class="btn" data-content="hero.btnText" data-href="hero.btnHref">View My Work</a>
+          <a href="#" onclick="downloadPDF(); return false;" class="btn btn-pdf">Download PDF</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <canvas id="hero-canvas"></canvas>
+        <video id="hero-profile-video" src="image/profile-1.mp4" muted autoplay loop playsinline></video>
+      </div>
     </div>
   </section>
 
   <section id="about" class="about">
     <div class="container">
-      <h2 class="section-title" data-content="about.sectionTitle">About Me</h2>
+      <h2 class="section-title reveal" data-content="about.sectionTitle">About Me</h2>
+      <p class="about-name reveal" style="--i:1" data-content="about.name"></p>
       <div class="about-content">
-        <div class="about-img">
-          <img src="image/profile.jpg" alt="Profile photo" loading="lazy">
-        </div>
         <div class="about-text">
-          <p data-content="about.desc1"></p>
-          <p data-content="about.desc2"></p>
+          <p class="reveal" style="--i:0" data-content="about.desc1"></p>
+          <p class="reveal" style="--i:1" data-content="about.desc2"></p>
+          <p class="reveal" style="--i:2" data-content="about.desc3"></p>
+        </div>
+        <div class="about-img reveal" style="--i:2">
+          <img src="image/profile.jpg" alt="Profile photo" loading="lazy">
         </div>
       </div>
       <div class="about-career" id="about-career">
-        <h3 class="career-title" data-content="career.sectionTitle">Experience</h3>
-        <div class="career-list"></div>
+        <div class="career-layout">
+          <div class="career-col">
+            <h3 class="career-col-title" data-content="career.sectionTitle">Experience</h3>
+            <span class="career-years"></span>
+            <div class="career-list"></div>
+          </div>
+          <div class="career-divider"></div>
+          <div class="career-col">
+            <h3 class="career-col-title">Skills</h3>
+            <div class="career-skills" id="career-skills"></div>
+          </div>
+        </div>
       </div>
 
     </div>
   </section>
 
-  <section id="skills" class="skills">
-    <div class="container">
-      <h2 class="section-title" data-content="skills.sectionTitle">Skills</h2>
-      <div class="skills-grid" id="skills-grid">
-      </div>
-      <div class="about-certification" id="about-certification">
-        <h3 class="career-title" data-content="certification.sectionTitle">Certification</h3>
-        <div class="certification-list"></div>
-      </div>
-      <div class="education" id="education">
-        <h3 class="education-title" data-content="education.sectionTitle">Education Progress</h3>
-        <div class="education-list" id="education-list"></div>
-      </div>
-    </div>
-  </section>
 
   <section id="projects" class="projects">
     <div class="container">
-      <h2 class="section-title">Projects</h2>
+      <h2 class="section-title reveal">Projects</h2>
       <div class="projects-grid" id="projects-grid">
       </div>
     </div>
@@ -81,7 +87,7 @@
 
   <section id="all-projects" class="all-projects">
     <div class="container">
-      <h2 class="section-title">Image</h2>
+      <h2 class="section-title reveal">Image</h2>
       <div class="all-projects-list" id="all-projects-list">
       </div>
     </div>
@@ -89,7 +95,7 @@
 
   <section id="contact" class="contact">
     <div class="container">
-      <h2 class="section-title" data-content="contact.sectionTitle">Contact</h2>
+      <h2 class="section-title reveal" data-content="contact.sectionTitle">Contact</h2>
       <div class="contact-info" id="contact-info">
       </div>
     </div>
@@ -137,30 +143,16 @@
     }
     var logo = document.querySelector('.logo');
     if (logo && contentData.nav) logo.textContent = contentData.nav.logo || 'Portfolio';
-    var skillsGrid = document.getElementById('skills-grid');
-    if (skillsGrid && contentData.skills && contentData.skills.categories) {
-      skillsGrid.innerHTML = contentData.skills.categories.map(function(cat) {
+    function renderSkillCategories(el) {
+      if (!el || !contentData.skills || !contentData.skills.categories) return;
+      el.innerHTML = contentData.skills.categories.map(function(cat, i) {
         var itemsHtml = (cat.items && cat.items.length)
           ? cat.items.map(function(s) { return '<span class="skill-tag">' + s + '</span>'; }).join('')
           : '<span class="skill-tag">' + cat.name + '</span>';
-        return '<div class="skill-category"><span class="skill-category-title">' + cat.name + '</span><div class="skill-category-items">' + itemsHtml + '</div></div>';
+        return '<div class="skill-category reveal" style="--i:' + i + '"><span class="skill-category-title">' + cat.name + '</span><div class="skill-category-items">' + itemsHtml + '</div></div>';
       }).join('');
-      // Scroll reveal animation
-      var observer = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-          if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-          }
-        });
-      }, { threshold: 0.1 });
-      skillsGrid.querySelectorAll('.skill-category').forEach(function(card, i) {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(30px)';
-        card.style.transition = 'opacity 0.5s ease ' + (i * 0.1) + 's, transform 0.5s ease ' + (i * 0.1) + 's';
-        observer.observe(card);
-      });
     }
+    renderSkillCategories(document.getElementById('career-skills'));
     var educationList = document.getElementById('education-list');
     if (educationList && contentData.education && contentData.education.items) {
       educationList.innerHTML = contentData.education.items.map(function(item) {
@@ -178,10 +170,10 @@
     }
     function renderTimeline(container, items) {
       if (!container || !items) return;
-      container.innerHTML = items.map(function(item) {
+      container.innerHTML = items.map(function(item, i) {
         var subtitleHtml = item.subtitle ? '<div class="timeline-subtitle">' + item.subtitle + '</div>' : '';
         var descHtml = item.desc ? '<p class="timeline-desc">' + item.desc + '</p>' : '';
-        return '<div class="timeline-item"><div class="timeline-date">' + item.period + '</div><div class="timeline-title">' + item.title + '</div>' + subtitleHtml + descHtml + '</div>';
+        return '<div class="timeline-item reveal" style="--i:' + i + '"><div class="timeline-date">' + item.period + '</div><div class="timeline-title">' + item.title + '</div>' + subtitleHtml + descHtml + '</div>';
       }).join('');
     }
     var careerList = document.querySelector('.career-list');
@@ -198,7 +190,56 @@
 
   renderContent();
 
+  // ── Hero 크로마키: profile-1.mp4 초록 배경 제거 ──────────────────────────
+  (function() {
+    var video = document.getElementById('hero-profile-video');
+    var canvas = document.getElementById('hero-canvas');
+    if (!video || !canvas) return;
+    var ctx = canvas.getContext('2d', { willReadFrequently: true });
+    var raf = null;
 
+    function setSize() {
+      if (video.videoWidth) {
+        // 표시 비율 유지: 컨테이너 너비 기준 높이 계산
+        canvas.width  = video.videoWidth;
+        canvas.height = video.videoHeight;
+      }
+    }
+
+    function processFrame() {
+      if (video.paused || video.ended) return;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      var id = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      var d  = id.data;
+      for (var i = 0; i < d.length; i += 4) {
+        var r = d[i], g = d[i + 1], b = d[i + 2];
+        // 초록 채널이 R·B보다 얼마나 더 강한지로 판단
+        var greenness = g - Math.max(r, b);
+        if (greenness > 25) {
+          // 부드러운 엣지를 위해 선형 페이드
+          d[i + 3] = Math.max(0, 255 - greenness * 5);
+        }
+      }
+      ctx.putImageData(id, 0, 0);
+      raf = requestAnimationFrame(processFrame);
+    }
+
+    video.addEventListener('loadedmetadata', setSize);
+    video.addEventListener('play', function() {
+      setSize();
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(processFrame);
+    });
+    video.addEventListener('pause', function() {
+      if (raf) { cancelAnimationFrame(raf); raf = null; }
+    });
+
+    // autoplay가 이미 시작된 경우 대비
+    if (!video.paused) {
+      setSize();
+      raf = requestAnimationFrame(processFrame);
+    }
+  })();
 
   (function() {
     var videoExts = ['mp4', 'webm', 'mov', 'avi', 'mkv'];
@@ -259,11 +300,26 @@
     var lbTitle = lightbox.querySelector('.lightbox-title');
     var lbCounter = lightbox.querySelector('.lightbox-counter');
 
-    // Hero background
-    var heroEntry = allItems[lookup['hero-bg']];
-    if (heroEntry && isVideoExt(heroEntry.ext)) {
-      var heroVideo = document.querySelector('.hero-bg-video');
-      if (heroVideo) heroVideo.src = 'image/' + heroEntry.key + '.' + heroEntry.ext;
+    // Hero background — mp4 우선, webm 폴백으로 브라우저가 지원 포맷 선택
+    var heroVideo = document.querySelector('.hero-bg-video');
+    if (heroVideo) {
+      heroVideo.innerHTML =
+        '<source src="image/hero-bg.mp4" type="video/mp4">' +
+        '<source src="image/hero-bg.webm" type="video/webm">';
+      heroVideo.load();
+    }
+
+    // About profile — imageData의 ext가 video면 <video>로, 아니면 <img>로 렌더링
+    var profileEntry = allItems[lookup['profile']];
+    var aboutContainer = document.querySelector('.about-img');
+    if (profileEntry && aboutContainer) {
+      var profileSrc = 'image/profile.' + profileEntry.ext;
+      if (isVideoExt(profileEntry.ext)) {
+        aboutContainer.innerHTML = '<video src="' + profileSrc + '" muted autoplay loop playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>';
+      } else {
+        var pImg = aboutContainer.querySelector('img');
+        if (pImg) pImg.src = profileSrc;
+      }
     }
 
     // Filter for display (exclude hero-bg, profile)
@@ -279,7 +335,8 @@
       if (item.galleryOnly) return;
       cardCount++;
       var card = document.createElement('div');
-      card.className = 'project-card';
+      card.className = 'project-card reveal';
+      card.style.setProperty('--i', cardCount - 1);
       card.dataset.idx = i;
       card.dataset.key = 'proj' + cardCount;
       var gUrl = gridUrl(item);
@@ -369,7 +426,7 @@
         groups[baseKey].push(entry);
       });
 
-      Object.keys(groups).forEach(function(baseKey) {
+      Object.keys(groups).forEach(function(baseKey, groupIdx) {
         var entries = groups[baseKey];
         var total = entries.length;
         var rest = entries.slice(1);
@@ -377,10 +434,13 @@
         var sizeClass = 'size-lg';
 
         var mainDiv = document.createElement('div');
-        mainDiv.className = 'all-project-item all-project-group-header ' + sizeClass;
+        mainDiv.className = 'all-project-item all-project-group-header ' + sizeClass + ' reveal';
+        mainDiv.style.setProperty('--i', groupIdx);
         var firstUrl = gridUrl(entries[0].item);
-        var groupTitle = baseKey.replace(/^\d+\.\s*/, '');
-        mainDiv.innerHTML = '<img src="' + firstUrl + '" alt="' + groupTitle + '" loading="lazy"><div class="all-project-group-label">' + groupTitle + '</div>';
+        var firstItem = entries[0].item;
+        var groupTitle = firstItem.title || baseKey.replace(/^\d+\.\s*/, '');
+        var groupSubHtml = firstItem.desc ? '<div class="all-project-group-sublabel">' + firstItem.desc + '</div>' : '';
+        mainDiv.innerHTML = '<img src="' + firstUrl + '" alt="' + groupTitle + '" loading="lazy"><div class="all-project-group-label">' + groupTitle + groupSubHtml + '</div>';
         if (rest.length > 0) {
           var badge = document.createElement('span');
           badge.className = 'all-project-badge';
@@ -415,9 +475,10 @@
       });
     });
 
-    // About img click -> open first lightbox item
-    var aboutImg = document.querySelector('.about-img img');
-    if (aboutImg) aboutImg.addEventListener('click', function() { openLightbox(0); });
+    // About img/video click -> open first lightbox item
+    var aboutClickTarget = document.querySelector('.about-img');
+    if (aboutClickTarget) aboutClickTarget.style.cursor = 'pointer';
+    if (aboutClickTarget) aboutClickTarget.addEventListener('click', function() { openLightbox(0); });
 
     lightbox.addEventListener('click', function(e) { if (e.target === lightbox) closeLightbox(); });
     lightbox.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
@@ -431,27 +492,321 @@
     });
   })();
 
-  function downloadPDF() {
+  // --- PDF 다운로드 (페이지 실시간 캡처 → 바로 다운로드) ---
+  var _pdfLibsPromise = null;
+  function loadScript(src) {
+    return new Promise(function(resolve, reject) {
+      var s = document.createElement('script');
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = function() { reject(new Error('스크립트 로드 실패: ' + src)); };
+      document.head.appendChild(s);
+    });
+  }
+  function ensurePdfLibs() {
+    if (_pdfLibsPromise) return _pdfLibsPromise;
+    _pdfLibsPromise = Promise.all([
+      (typeof html2canvas !== 'undefined') ? Promise.resolve()
+        : loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
+      (window.jspdf && window.jspdf.jsPDF) ? Promise.resolve()
+        : loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
+    ]).catch(function(err) { _pdfLibsPromise = null; throw err; });
+    return _pdfLibsPromise;
+  }
+
+  // 모든 이미지를 즉시 로드하고 완료될 때까지 대기
+  function preloadAllImages() {
     var urls = [];
-    var allImgs = document.querySelectorAll('img');
-    allImgs.forEach(function(img) {
+    document.querySelectorAll('img').forEach(function(img) {
+      img.setAttribute('loading', 'eager');
       var s = img.src;
       if (s && urls.indexOf(s) === -1) urls.push(s);
-      img.setAttribute('loading', 'eager');
-      if (!img.complete && s) {
-        img.src = '';
-        img.src = s;
+    });
+    if (urls.length === 0) return Promise.resolve();
+    return new Promise(function(resolve) {
+      var done = 0, total = urls.length;
+      var tick = function() { done++; if (done >= total) resolve(); };
+      urls.forEach(function(u) { var i = new Image(); i.onload = tick; i.onerror = tick; i.src = u; });
+      setTimeout(resolve, 6000); // 안전 타임아웃
+    });
+  }
+
+  // @media print 규칙을 실제 문서에서도 활성/복원 (정확한 높이 측정 + 고해상도 캡처용)
+  function activatePrintTheme(store) {
+    var sheets = document.styleSheets;
+    for (var i = 0; i < sheets.length; i++) {
+      var rules;
+      try { rules = sheets[i].cssRules; } catch (e) { continue; }
+      if (!rules) continue;
+      for (var j = 0; j < rules.length; j++) {
+        var rule = rules[j];
+        if (rule.media && rule.media.mediaText &&
+            rule.media.mediaText.indexOf('print') !== -1) {
+          store.push({ rule: rule, text: rule.media.mediaText });
+          rule.media.mediaText = 'all';
+        }
+      }
+    }
+  }
+  function restorePrintTheme(store) {
+    store.forEach(function(s) { try { s.rule.media.mediaText = s.text; } catch (e) {} });
+    store.length = 0;
+  }
+
+  // 캔버스의 한 가로줄이 "거의 흰 배경"인지(=요소 사이 여백인지) 판정
+  function rowIsBackground(data, width, rowOffsetPx, step) {
+    var base = rowOffsetPx * width * 4;
+    var bad = 0;
+    var limit = Math.floor(width * 0.012); // 약 1.2%까지의 비배경 픽셀은 허용(테두리/그림자)
+    for (var x = 0; x < width; x += step) {
+      var i = base + x * 4;
+      // 흰색에서 충분히 벗어난 픽셀 = 내용물
+      if (data[i] < 244 || data[i + 1] < 244 || data[i + 2] < 244) {
+        bad++;
+        if (bad > limit) return false;
+      }
+    }
+    return true;
+  }
+
+  // idealY 이하에서 내용을 가르지 않는 깔끔한 분할 지점(여백 줄)을 탐색
+  function findCleanBreak(ctx, width, idealY, minY) {
+    if (minY < 0) minY = 0;
+    if (minY >= idealY) return idealY;
+    var stripH = idealY - minY;
+    var strip;
+    try {
+      strip = ctx.getImageData(0, minY, width, stripH);
+    } catch (e) {
+      return idealY; // 메모리/보안 예외 시 기존 방식으로 폴백
+    }
+    var data = strip.data;
+    var step = Math.max(1, Math.floor(width / 600));
+    // ideal에 가까운(=페이지를 꽉 채우는) 여백을 우선 선택해 위로 탐색
+    for (var ry = stripH - 1; ry >= 0; ry--) {
+      if (rowIsBackground(data, width, ry, step)) return minY + ry;
+    }
+    return idealY;
+  }
+
+  // "제목 + 패널 내용"을 하나의 통짜 블록으로 정의해 문서상 세로 범위(CSS px)를 수집한다.
+  // 각 블록은 페이지 중간에서 절대 잘리지 않고 통째로 배치된다.
+  // split:true 인 블록(갤러리)만 행 단위로 흐르도록 허용한다.
+  function collectBlocks() {
+    var defs = [
+      { sel: ['.hero'], split: false },
+      { sel: ['#about .section-title', '#about .about-content'], split: false },
+      { sel: ['#about .about-career'], split: false },              // Experience (제목 포함)
+      { sel: ['#skills .section-title', '#skills .skills-grid'], split: false },
+      { sel: ['#skills .about-certification'], split: false },      // Certification (제목 포함)
+      { sel: ['#skills .education'], split: false },                // Education (제목 포함)
+      { sel: ['#projects'], split: false },                        // 제목 + 프로젝트 그리드
+      { sel: ['#all-projects .section-title'], split: false },     // 갤러리 제목
+      { sel: ['#all-projects .all-projects-list'], split: true },  // 갤러리 이미지(행 단위 분할 허용)
+      { sel: ['#contact'], split: false },                         // 제목 + 연락처
+      { sel: ['footer'], split: false }
+    ];
+    var blocks = [];
+    defs.forEach(function(d) {
+      var top = Infinity, bottom = -Infinity;
+      d.sel.forEach(function(s) {
+        document.querySelectorAll(s).forEach(function(el) {
+          var r = el.getBoundingClientRect();
+          if (r.height <= 0) return;
+          var t = r.top + window.scrollY, b = r.bottom + window.scrollY;
+          if (t < top) top = t;
+          if (b > bottom) bottom = b;
+        });
+      });
+      if (bottom > top) blocks.push({ top: top, bottom: bottom, split: d.split });
+    });
+    return blocks;
+  }
+
+  // .project-img / .all-project-item 안의 video를 img로 대체한다.
+  // 이미 재생 중인 영상은 현재 프레임을 즉시 그리고,
+  // 아직 미로드 영상은 첫 프레임만 받아 그린다(seek 없음 → 빠름).
+  function captureVideoFrames() {
+    var containers = document.querySelectorAll('.project-img, .all-project-item');
+    var promises = [];
+    Array.prototype.forEach.call(containers, function(container) {
+      var video = container.querySelector('video');
+      var fallback = container.querySelector('.print-fallback-video');
+      if (!video) return;
+      var p = new Promise(function(resolve) {
+        var done = false;
+        var timer = setTimeout(resolve, 5000);
+        var injectFrame = function() {
+          if (done) return; done = true;
+          clearTimeout(timer);
+          try {
+            var vw = video.videoWidth, vh = video.videoHeight;
+            if (vw && vh) {
+              var c = document.createElement('canvas');
+              c.width = vw; c.height = vh;
+              c.getContext('2d').drawImage(video, 0, 0);
+              var img = document.createElement('img');
+              img.className = 'pdf-video-frame';
+              img.src = c.toDataURL('image/jpeg', 0.92);
+              img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+              if (fallback) fallback.style.setProperty('display', 'none', 'important');
+              container.appendChild(img);
+            }
+          } catch(e) {}
+          resolve();
+        };
+        if (video.readyState >= 2) {
+          // 이미 재생 중 → 현재 프레임 즉시 캡처
+          injectFrame();
+        } else {
+          // 미로드(뷰포트 밖 lazy 등) → 첫 프레임만 로드 후 캡처
+          video.removeAttribute('loading');
+          video.preload = 'auto';
+          video.addEventListener('loadeddata', injectFrame, { once: true });
+          video.load();
+        }
+      });
+      promises.push(p);
+    });
+    return Promise.all(promises);
+  }
+
+  function downloadPDF() {
+    var btn = document.querySelector('.btn-pdf');
+    var label = btn ? btn.textContent : '';
+    var printStore = [];
+    var pageMeta = { blocks: [], printHeight: 0 };
+    var setBusy = function(on) {
+      if (!btn) return;
+      btn.textContent = on ? 'PDF 생성 중…' : label;
+      btn.style.pointerEvents = on ? 'none' : '';
+      btn.style.opacity = on ? '0.7' : '';
+    };
+    setBusy(true);
+
+    ensurePdfLibs()
+      .then(preloadAllImages)
+      .then(captureVideoFrames)   // pdf-exporting 전에 캡처 — video가 살아있는 상태여야 seek 가능
+      .then(function() {
+        activatePrintTheme(printStore);
+        document.body.classList.add('pdf-exporting');
+        return new Promise(function(r) { setTimeout(r, 350); });
+      })
+      .then(function() {
+        var widthPx = document.documentElement.scrollWidth;
+        var printHeight = document.body.scrollHeight; // 인쇄 테마 기준 실제 높이
+        // 캡처와 동일한 레이아웃(인쇄 테마)에서 블록 범위를 측정해 둔다.
+        pageMeta.printHeight = printHeight;
+        pageMeta.blocks = collectBlocks();
+        // 브라우저 캔버스 한계(최대 변·최대 면적) 안에서 스케일을 최대한 크게 → 선명하게
+        var MAX_DIM = 32760;       // 안전한 최대 변 길이(px)
+        var MAX_AREA = 2.4e8;      // 안전한 최대 면적(px²)
+        var scale = Math.min(
+          3,                                   // 목표 해상도(3배)
+          MAX_DIM / printHeight,
+          MAX_DIM / widthPx,
+          Math.sqrt(MAX_AREA / (printHeight * widthPx))
+        );
+        if (scale < 1) scale = 1;              // 너무 길면 최소 1배는 유지
+        return html2canvas(document.body, {
+          scale: scale,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff', // 인쇄용 흰 배경
+          windowWidth: widthPx,
+          scrollX: 0,
+          scrollY: 0,
+          ignoreElements: function(el) {
+            return el.classList && (
+              el.classList.contains('navbar') ||
+              el.classList.contains('lightbox') ||
+              el.classList.contains('btn-pdf')
+            );
+          },
+          onclone: function(clonedDoc) {
+            // 복제 문서에서도 인쇄 테마/흰 배경 보장
+            clonedDoc.documentElement.style.background = '#ffffff';
+            clonedDoc.body.style.background = '#ffffff';
+            clonedDoc.body.classList.add('pdf-exporting');
+          }
+        });
+      })
+      .then(function(canvas) {
+        restorePrintTheme(printStore);
+        document.body.classList.remove('pdf-exporting');
+        // 캡처용으로 주입했던 video 프레임 img 제거 + fallback 복원
+        Array.prototype.forEach.call(document.querySelectorAll('.pdf-video-frame'), function(el) {
+          el.parentNode.removeChild(el);
+        });
+        Array.prototype.forEach.call(document.querySelectorAll('.print-fallback-video'), function(el) {
+          el.style.removeProperty('display');
+        });
+        var jsPDF = window.jspdf.jsPDF;
+        // A4 너비(210mm) 기준으로 캔버스 비율에 맞춘 높이 → 한 장짜리 PDF
+        var pageW = 210;
+        var pageH = (canvas.height / canvas.width) * pageW;
+        var pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [pageW, pageH] });
+        pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pageW, pageH);
+
+        var name = (typeof contentData !== 'undefined' && contentData.hero && contentData.hero.name)
+          ? contentData.hero.name : 'Portfolio';
+        pdf.save(name.replace(/\s+/g, '_') + '_Portfolio.pdf');
+        setBusy(false);
+      })
+      .catch(function(err) {
+        restorePrintTheme(printStore);
+        document.body.classList.remove('pdf-exporting');
+        setBusy(false);
+        console.error('PDF 생성 실패, 인쇄 대화상자로 대체합니다:', err);
+        window.print(); // 라이브러리 로드 실패 등 예외 시 폴백
+      });
+  }
+
+  // ── 총경력 계산
+  (function() {
+    var el = document.querySelector('.career-years');
+    if (!el || !contentData.career || !contentData.career.items) return;
+    var years = contentData.career.items.map(function(it) { return parseInt(it.period); }).filter(Boolean);
+    if (!years.length) return;
+    el.textContent = '총 ' + (new Date().getFullYear() - Math.min.apply(null, years)) + '년+';
+  })();
+
+  // ── A. 진입 애니메이션 (Intersection Observer)
+  (function() {
+    if (!window.IntersectionObserver) {
+      document.querySelectorAll('.reveal').forEach(function(el) { el.classList.add('visible'); });
+      return;
+    }
+    var obs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) { entry.target.classList.add('visible'); obs.unobserve(entry.target); }
+      });
+    }, { threshold: 0.08 });
+    var vh = window.innerHeight;
+    document.querySelectorAll('.reveal').forEach(function(el) {
+      var top = el.getBoundingClientRect().top;
+      if (top < vh) {
+        el.classList.add('visible');  // 이미 뷰포트 안 — 즉시 표시
+      } else {
+        obs.observe(el);              // 아래쪽 — 스크롤 시 트리거
       }
     });
-    document.querySelectorAll('video').forEach(function(v) {
-      var p = v.getAttribute('poster');
-      if (p && urls.indexOf(p) === -1) urls.push(p);
-    });
-    if (urls.length === 0) { window.print(); return; }
-    var n = 0, t = urls.length, d = function() { n++; if (n >= t) window.print(); };
-    urls.forEach(function(u) { var i = new Image(); i.onload = d; i.onerror = d; i.src = u; });
-    setTimeout(function() { window.print(); }, 4000);
-  }
+  })();
+
+  // ── B. 활성 nav 하이라이트
+  (function() {
+    var sections = Array.from(document.querySelectorAll('section[id]'));
+    var links = Array.from(document.querySelectorAll('.nav-links a'));
+    function update() {
+      var y = window.scrollY + 100;
+      var cur = sections.length ? sections[0].id : '';
+      sections.forEach(function(s) { if (s.offsetTop <= y) cur = s.id; });
+      links.forEach(function(a) { a.classList.toggle('active', a.getAttribute('href') === '#' + cur); });
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  })();
+
 </script>
 </body>
 </html>
