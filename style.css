@@ -128,8 +128,9 @@ body {
   height: 100%;
   object-fit: cover;
   z-index: 0;
-  opacity: 0.05;
+  opacity: 1.0;
 }
+
 
 .hero-content {
   position: relative;
@@ -165,6 +166,12 @@ body {
   line-height: 1.2;
   color: var(--text);
   margin-bottom: 24px;
+  text-shadow:
+    1px 1px 0 #94a3b8,
+    2px 2px 0 #64748b,
+    3px 3px 0 #475569,
+    0 0 24px rgba(255, 255, 255, 0.80),
+    0 0 48px rgba(255, 255, 255, 0.40);
 }
 
 .highlight { color: var(--text); }
@@ -173,12 +180,12 @@ body {
   font-size: 1rem;
   color: var(--text-2);
   line-height: 1.8;
-  margin-bottom: 40px;
+  word-break: keep-all;
+  overflow-wrap: break-word;
   max-width: 560px;
   margin-left: auto;
   margin-right: auto;
-  word-break: keep-all;
-  overflow-wrap: break-word;
+  margin-bottom: 40px;
 }
 
 .hero-btns {
@@ -202,6 +209,49 @@ body {
   height: 480px;
   display: block;
   border-radius: 16px;
+}
+
+.scroll-indicator {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: block;
+  padding-top: 60px;
+}
+
+.scroll-indicator span {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 30px;
+  height: 50px;
+  margin-left: -15px;
+  border: 2px solid var(--text-2);
+  border-radius: 50px;
+  box-sizing: border-box;
+}
+
+.scroll-indicator span::before {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  content: '';
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  background-color: var(--text-2);
+  border-radius: 100%;
+  animation: scrollDot 2s infinite;
+  box-sizing: border-box;
+}
+
+@keyframes scrollDot {
+  0%   { transform: translate(0, 0);      opacity: 0; }
+  40%  { opacity: 1; }
+  80%  { transform: translate(0, 20px);   opacity: 0; }
+  100% { opacity: 0; }
 }
 
 .btn {
@@ -245,6 +295,7 @@ body {
 ═══════════════════════════════ */
 body.pdf-exporting .navbar,
 body.pdf-exporting .hero-bg-video,
+body.pdf-exporting .scroll-indicator,
 body.pdf-exporting .lightbox,
 body.pdf-exporting .btn-pdf {
   display: none !important;
@@ -960,7 +1011,7 @@ section { padding: 80px 0; }
 
 @media (max-width: 768px) {
   section { padding: 56px 0; }
-  .hero-content { padding: 56px 28px 40px; }
+  .hero-content { padding: 56px 28px 40px; flex-direction: column; gap: 32px; }
   .hero-visual { flex: none; width: 100%; max-width: 300px; margin: 0 auto; }
   .hero-visual img { height: 300px; }
   .about-content { flex-direction: column; gap: 0; }
@@ -1047,7 +1098,7 @@ section { padding: 80px 0; }
   body { font-size: 11px; line-height: 1.4; }
 
   .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
-  .navbar, .hero-bg-video, .hero-overlay, .lightbox, .btn-pdf { display: none !important; }
+  .navbar, .hero-bg-video, .scroll-indicator, .hero-overlay, .lightbox, .btn-pdf { display: none !important; }
   video { display: none !important; }
   .project-img video { display: none !important; }
   .print-fallback-video { display: flex !important; }
@@ -1059,7 +1110,7 @@ section { padding: 80px 0; }
   .career-title, .education-title { font-size: 0.68rem !important; margin-bottom: 12px !important; }
 
   .hero { height: auto !important; min-height: auto !important; padding: 18px 0 !important; }
-  .hero-content h1 { font-size: 1.8rem !important; margin-bottom: 6px !important; }
+  .hero-content h1 { font-size: 1.8rem !important; margin-bottom: 6px !important; text-shadow: none !important; }
   .hero-content p { margin-bottom: 10px !important; }
   .btn { padding: 5px 16px !important; font-size: 0.78rem !important; }
 

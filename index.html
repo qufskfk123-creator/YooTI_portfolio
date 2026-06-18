@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portfolio</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="preload" href="image/hero-bg.mp4" as="video" type="video/mp4">
-  <link rel="preload" href="image/hero-bg.webm" as="video" type="video/webm">
+  <link rel="preload" href="image/hero-bg.mp4" as="video" type="video/mp4" fetchpriority="high">
+  <link rel="preload" href="image/hero-bg.webm" as="video" type="video/webm" fetchpriority="high">
   <link rel="preload" href="image/profile.webp" as="image" type="image/webp">
 
 </head>
@@ -29,7 +29,10 @@
   </nav>
 
   <section id="hero" class="hero">
-    <video class="hero-bg-video" muted autoplay loop playsinline></video>
+    <video class="hero-bg-video" muted autoplay playsinline preload="auto">
+      <source src="image/hero-bg.mp4" type="video/mp4">
+      <source src="image/hero-bg.webm" type="video/webm">
+    </video>
     <div class="container hero-content">
       <div class="hero-text">
         <p class="hero-label" data-content="hero.subtitle"></p>
@@ -45,6 +48,7 @@
         <video id="hero-profile-video" src="image/profile-1.mp4" muted autoplay loop playsinline></video>
       </div>
     </div>
+    <a class="scroll-indicator" href="#about"><span></span></a>
   </section>
 
   <section id="about" class="about">
@@ -308,13 +312,21 @@
     var lbTitle = lightbox.querySelector('.lightbox-title');
     var lbCounter = lightbox.querySelector('.lightbox-counter');
 
-    // Hero background — mp4 우선, webm 폴백으로 브라우저가 지원 포맷 선택
+    // Hero background — 1회 재생 후 마지막 프레임 유지, 히어로로 돌아오면 재시작
     var heroVideo = document.querySelector('.hero-bg-video');
     if (heroVideo) {
-      heroVideo.innerHTML =
-        '<source src="image/hero-bg.mp4" type="video/mp4">' +
-        '<source src="image/hero-bg.webm" type="video/webm">';
-      heroVideo.load();
+      heroVideo.playbackRate = 1.5;
+      heroVideo.addEventListener('ended', function() { this.pause(); });
+
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function(entries) {
+          if (entries[0].isIntersecting && heroVideo.ended) {
+            heroVideo.currentTime = 0;
+            heroVideo.playbackRate = 1.5;
+            heroVideo.play();
+          }
+        }, { threshold: 0.3 }).observe(document.getElementById('hero'));
+      }
     }
 
     // About profile — imageData의 ext가 video면 <video>로, 아니면 <img>로 렌더링
@@ -829,5 +841,7 @@
   })();
 
 </script>
+
+
 </body>
 </html>
