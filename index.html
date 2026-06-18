@@ -750,7 +750,7 @@
 
         var name = (typeof contentData !== 'undefined' && contentData.hero && contentData.hero.name)
           ? contentData.hero.name : 'Portfolio';
-        pdf.save(name.replace(/\s+/g, '_') + '_Portfolio.pdf');
+          pdf.save('유태일_3DArtist_Portfolio.pdf');
         setBusy(false);
       })
       .catch(function(err) {
