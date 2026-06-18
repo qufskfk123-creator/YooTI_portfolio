@@ -14,6 +14,9 @@
   <nav class="navbar">
     <div class="container nav-container">
       <a href="#" class="logo">Portfolio</a>
+      <button class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
       <ul class="nav-links">
         <li><a href="#hero">Home</a></li>
         <li><a href="#about">About</a></li>
@@ -47,15 +50,15 @@
   <section id="about" class="about">
     <div class="container">
       <h2 class="section-title reveal" data-content="about.sectionTitle">About Me</h2>
+      <div class="about-img reveal" style="--i:2">
+        <img src="image/profile.jpg" alt="Profile photo" loading="lazy">
+      </div>
       <p class="about-name reveal" style="--i:1" data-content="about.name"></p>
       <div class="about-content">
         <div class="about-text">
           <p class="reveal" style="--i:0" data-content="about.desc1"></p>
           <p class="reveal" style="--i:1" data-content="about.desc2"></p>
           <p class="reveal" style="--i:2" data-content="about.desc3"></p>
-        </div>
-        <div class="about-img reveal" style="--i:2">
-          <img src="image/profile.jpg" alt="Profile photo" loading="lazy">
         </div>
       </div>
       <div class="about-career" id="about-career">
@@ -95,8 +98,13 @@
 
   <section id="contact" class="contact">
     <div class="container">
-      <h2 class="section-title reveal" data-content="contact.sectionTitle">Contact</h2>
-      <div class="contact-info" id="contact-info">
+      <div class="contact-left reveal">
+        <h2 class="section-title" data-content="contact.sectionTitle">Contact</h2>
+        <p class="contact-tagline" data-content="contact.tagline">함께할 기회를 기대합니다.</p>
+        <p class="contact-tagline-sub" data-content="contact.taglineSub">I look forward to hearing from you.</p>
+      </div>
+      <div class="contact-right reveal" style="--i:1">
+        <div class="contact-info" id="contact-info"></div>
       </div>
     </div>
   </section>
@@ -475,10 +483,6 @@
       });
     });
 
-    // About img/video click -> open first lightbox item
-    var aboutClickTarget = document.querySelector('.about-img');
-    if (aboutClickTarget) aboutClickTarget.style.cursor = 'pointer';
-    if (aboutClickTarget) aboutClickTarget.addEventListener('click', function() { openLightbox(0); });
 
     lightbox.addEventListener('click', function(e) { if (e.target === lightbox) closeLightbox(); });
     lightbox.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
@@ -789,6 +793,23 @@
         el.classList.add('visible');  // 이미 뷰포트 안 — 즉시 표시
       } else {
         obs.observe(el);              // 아래쪽 — 스크롤 시 트리거
+      }
+    });
+  })();
+
+  // ── 햄버거 메뉴 토글
+  (function() {
+    var navbar = document.querySelector('.navbar');
+    var toggle = document.querySelector('.nav-toggle');
+    if (!toggle || !navbar) return;
+    toggle.addEventListener('click', function() {
+      var open = navbar.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+    navbar.addEventListener('click', function(e) {
+      if (e.target.closest('.nav-links a')) {
+        navbar.classList.remove('nav-open');
+        toggle.setAttribute('aria-expanded', 'false');
       }
     });
   })();

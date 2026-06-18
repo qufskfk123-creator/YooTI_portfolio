@@ -56,6 +56,8 @@ var contentData = {
   },
   contact: {
     sectionTitle: "Contact",
+    tagline: "함께할 기회를 기대합니다.",
+    taglineSub: "I look forward to hearing from you.",
     items: [
       { icon: "&#127760;", text: "Homepage", url: "https://yoo-ti-portfolio.vercel.app" },
       { icon: "&#9993;", text: "qufskfk123@gmail.com" },
