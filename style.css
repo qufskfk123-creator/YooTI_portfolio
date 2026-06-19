@@ -162,16 +162,21 @@ body {
 .hero-content h1 {
   font-size: clamp(2.2rem, 4vw, 3.4rem);
   font-weight: 800;
-  letter-spacing: -0.03em;
+  letter-spacing: 0.02em;
   line-height: 1.2;
-  color: var(--text);
+  color: var(--primary);
+  -webkit-text-stroke: 1.5px rgba(255,255,255,0.9);
+  paint-order: stroke fill;
   margin-bottom: 24px;
   text-shadow:
-    1px 1px 0 #94a3b8,
-    2px 2px 0 #64748b,
-    3px 3px 0 #475569,
-    0 0 24px rgba(255, 255, 255, 0.80),
-    0 0 48px rgba(255, 255, 255, 0.40);
+    -0.0075em 0.0075em 1px rgba(180,180,180,0.95),
+    0.005em 0.005em 1px rgba(180,180,180,0.85),
+    0.01em 0.01em 1px rgba(180,180,180,0.75),
+    0.015em 0.015em 1px rgba(180,180,180,0.65),
+    0.02em 0.02em 1px rgba(180,180,180,0.55),
+    0.025em 0.025em 1px rgba(180,180,180,0.45),
+    0.03em 0.03em 1px rgba(180,180,180,0.35),
+    0.035em 0.035em 1px rgba(180,180,180,0.25);
 }
 
 .highlight { color: var(--text); }
