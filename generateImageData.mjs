@@ -25,6 +25,18 @@ if (listMatch) {
   }
 }
 
+// 기존 imageGalleryExtra의 수동 편집 제목/부제/링크를 키별로 보존한다.
+// (배포 시 재생성돼도 손으로 지은 갤러리 박스 이름이 날아가지 않도록)
+const existingEntries = {};
+const extraMatch = content.match(/var imageGalleryExtra\s*=\s*\[([\s\S]*?)\];/);
+if (extraMatch) {
+  const extraRegex = /\["([^"]*)",\s*"([^"]*)",\s*"([^"]*)",\s*"([^"]*)"/g;
+  let m;
+  while ((m = extraRegex.exec(extraMatch[1])) !== null) {
+    existingEntries[m[1]] = { title: m[2], desc: m[3], url: m[4] };
+  }
+}
+
 function naturalSort(a, b) {
   const an = parseInt(a, 10), bn = parseInt(b, 10);
   if (!isNaN(an) && !isNaN(bn)) return an - bn;
@@ -74,8 +86,22 @@ for (const dir of subdirs) {
     const ext = path.extname(f).slice(1);
     const seq = path.basename(f, path.extname(f));
     const key = `${dir}-${seq}`;
-    const title = parentTitle ? `${parentTitle} detail ${seq}` : `Project ${dirNum?.[1] || dir} detail ${seq}`;
-    entries.push([key, title, '', '', ext, false]);
+    const prev = existingEntries[key];
+
+    let title;
+    if (prev && prev.title) {
+      // 이미 손으로 지은 제목이 있으면 그대로 유지
+      title = prev.title;
+    } else if (seq === '1') {
+      // 대표(첫) 이미지: "detail" 없이 대표 제목만
+      title = parentTitle || `Project ${dirNum?.[1] || dir}`;
+    } else {
+      title = parentTitle ? `${parentTitle} detail ${seq}` : `Project ${dirNum?.[1] || dir} detail ${seq}`;
+    }
+
+    const desc = prev ? prev.desc : '';
+    const url = prev ? prev.url : '';
+    entries.push([key, title, desc, url, ext, false]);
   });
 }
 
